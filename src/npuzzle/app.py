@@ -57,7 +57,7 @@ class App:
             messagebox.showerror("Lỗi", "Không thể tải hình ảnh. Vui lòng chọn file hợp lệ.")
             root.destroy()
             return
-        self.session.scramble()
+        self.session.shuffle()
 
     def handle_click(self, pos) -> None:
         panel, session = self.panel, self.session

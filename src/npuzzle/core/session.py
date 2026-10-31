@@ -55,13 +55,10 @@ class GameSession:
     def searching(self) -> bool:
         return self._job is not None
 
-    def scramble(self) -> None:
-        self.state = random_state(self.size)
-        self.initial_state = self.state
-
     def shuffle(self) -> None:
         self.cancel_solving()
-        self.scramble()
+        self.state = random_state(self.size)
+        self.initial_state = self.state
         self.moves = 0
         self.won = False
 

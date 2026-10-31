@@ -92,6 +92,29 @@ def test_cancel_stops_the_search_and_keeps_the_board():
     assert session.records == []
 
 
+def test_shuffle_after_winning_unlocks_the_board():
+    session = session_at(GOAL)
+    session.update(0)
+    assert session.won
+    session.shuffle()
+    assert not session.won
+    assert session.moves == 0
+    session.update(0)
+    assert not session.won
+
+
+def test_shuffle_during_playback_drops_the_old_solution():
+    session = session_at(ONE_MOVE_AWAY)
+    session.start_solving()
+    wait_for_search(session)
+    session.shuffle()
+    board = session.state
+    assert not session.solving
+    assert session.solution == []
+    session.update(5000)
+    assert session.state == board
+
+
 def test_unsolvable_board_reports_no_solution():
     session = session_at(UNSOLVABLE)
     session.start_solving()
