@@ -95,6 +95,7 @@ def test_labels_fit_their_controls(app, language):
         assert fonts.strong.size(text)[0] <= panel.status_rect.width, text
     assert fonts.small.size(t("table_note"))[0] <= panel.inner_width
     assert fonts.small.size(t("table_empty"))[0] <= panel.inner_width
+    assert fonts.small.size(t("table_single"))[0] <= panel.inner_width
     assert (
         fonts.small.size(t("reference_board"))[0] <= panel.language.rect.x - panel.choose.rect.x - 8
     )
@@ -130,5 +131,6 @@ def test_number_formats_follow_the_language():
     assert format_seconds(1.5, "vi") == "1,50 s"
     assert format_seconds(1.5, "en") == "1.50 s"
     assert format_seconds(0.004, "en") == "4.0 ms"
+    assert format_seconds(0.00001, "vi") == "< 0,1 ms"
     assert format_bytes(2400, "en") == "≈ 2 KB"
     assert format_bytes(21 * 1024 * 1024, "vi") == "≈ 21,0 MB"

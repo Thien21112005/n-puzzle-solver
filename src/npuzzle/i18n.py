@@ -19,6 +19,7 @@ STRINGS = {
         "col_time": "Thời gian",
         "col_memory": "Bộ nhớ ước tính",
         "table_note": "Kết quả trên bàn vừa giải. Số màu xanh là tốt nhất.",
+        "table_single": "Kết quả trên bàn vừa giải. Chạy thêm thuật toán khác để so sánh.",
         "table_empty": "Chọn một thuật toán rồi bấm Giải để ghi kết quả.",
         "solve_with": "Giải bằng {algorithm}",
         "cancel": "Hủy",
@@ -54,6 +55,7 @@ STRINGS = {
         "col_time": "Time",
         "col_memory": "Memory (est.)",
         "table_note": "Results for the board last solved. Green marks the best.",
+        "table_single": "Results for the board last solved. Run another algorithm to compare.",
         "table_empty": "Pick an algorithm, then press Solve to record a result.",
         "solve_with": "Solve with {algorithm}",
         "cancel": "Cancel",
@@ -106,6 +108,8 @@ def _decimal(value: float, digits: int, language: str) -> str:
 def format_seconds(seconds: float, language: str) -> str:
     if seconds < 1:
         milliseconds = seconds * 1000
+        if milliseconds < 0.1:
+            return f"< {_decimal(0.1, 1, language)} ms"
         return f"{_decimal(milliseconds, 1 if milliseconds < 10 else 0, language)} ms"
     return f"{_decimal(seconds, 2, language)} s"
 

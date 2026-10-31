@@ -211,7 +211,8 @@ class SidePanel:
         draw.text(screen, fonts.heading, t("comparison"), theme.COBALT, topleft=heading_pos)
         self._draw_table(screen, session, mouse)
         note_pos = (self.table_x, self.note_y)
-        note = t("table_note") if session.comparison() else t("table_empty")
+        runs = len(session.comparison())
+        note = t("table_empty" if runs == 0 else "table_single" if runs == 1 else "table_note")
         draw.text(screen, fonts.small, note, theme.INK_SOFT, topleft=note_pos)
 
         message, color = self._status(session, notice)
