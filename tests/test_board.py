@@ -1,4 +1,15 @@
-from npuzzle.core.board import apply_move, goal_state, manhattan, neighbors, random_state
+import random
+
+import pytest
+
+from npuzzle.core.board import (
+    apply_move,
+    goal_state,
+    is_solvable,
+    manhattan,
+    neighbors,
+    random_state,
+)
 
 
 def test_goal_state_puts_blank_last():
@@ -33,3 +44,27 @@ def test_manhattan_ignores_the_blank():
 
 def test_random_state_uses_each_value_once():
     assert sorted(random_state(3)) == list(range(9))
+
+
+@pytest.mark.parametrize("size", [3, 4])
+def test_random_state_is_always_solvable_and_unsolved(size):
+    for _ in range(300):
+        state = random_state(size)
+        assert is_solvable(state)
+        assert state != goal_state(size)
+
+
+@pytest.mark.parametrize("size", [3, 4])
+def test_solvability_holds_along_a_random_walk(size):
+    rng = random.Random(size)
+    state = goal_state(size)
+    for _ in range(300):
+        state = rng.choice(list(neighbors(state)))[1]
+        assert is_solvable(state)
+
+
+@pytest.mark.parametrize("size", [3, 4])
+def test_swapping_two_tiles_breaks_solvability(size):
+    cells = list(goal_state(size))
+    cells[0], cells[1] = cells[1], cells[0]
+    assert not is_solvable(tuple(cells))

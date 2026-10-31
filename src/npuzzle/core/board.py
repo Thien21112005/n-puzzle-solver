@@ -21,10 +21,28 @@ def goal_state(size: int = DEFAULT_SIZE) -> State:
     return (*range(1, size * size), BLANK)
 
 
+def is_solvable(state: State) -> bool:
+    """Check the inversion parity, which no legal move can change."""
+    size = board_size(state)
+    tiles = [value for value in state if value != BLANK]
+    inversions = sum(
+        tiles[i] > tiles[j] for i in range(len(tiles)) for j in range(i + 1, len(tiles))
+    )
+    if size % 2 == 1:
+        return inversions % 2 == 0
+    blank_row_from_bottom = size - 1 - state.index(BLANK) // size
+    return (inversions + blank_row_from_bottom) % 2 == 0
+
+
 def random_state(size: int = DEFAULT_SIZE) -> State:
-    values = list(range(size * size))
-    random.shuffle(values)
-    return tuple(values)
+    """Return a solvable board that is not already solved."""
+    goal = goal_state(size)
+    values = list(goal)
+    while True:
+        random.shuffle(values)
+        state = tuple(values)
+        if state != goal and is_solvable(state):
+            return state
 
 
 def board_size(state: State) -> int:
