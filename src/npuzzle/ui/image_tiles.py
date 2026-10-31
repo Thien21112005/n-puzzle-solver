@@ -2,7 +2,7 @@
 
 import pygame
 
-from npuzzle.ui.theme import BOARD_HEIGHT, GAME_WIDTH, TILE_GAP, TILE_SIZE
+from npuzzle.ui.theme import BOARD_HEIGHT, GAME_WIDTH, TILE_GAP, TILE_RADIUS, TILE_SIZE
 
 REFERENCE_SIZE = 150
 
@@ -39,11 +39,12 @@ class ImageTiles:
                 tile.blit(scaled, (0, 0), (col * TILE_SIZE, row * TILE_SIZE, side, side))
                 self.tiles.append(tile)
         self.reference = pygame.transform.smoothscale(scaled, (REFERENCE_SIZE, REFERENCE_SIZE))
+        # Rounding every tile on every frame is expensive, so it happens once here.
+        self._rendered = [rounded(tile, TILE_RADIUS) for tile in self.tiles]
+        faded = pygame.transform.grayscale(self.tiles[-1])
+        faded.set_alpha(128)
+        self._blank = rounded(faded, TILE_RADIUS)
 
     def tile_for(self, value: int) -> pygame.Surface:
         """Return the tile of a value; the blank shows the last cell, faded."""
-        if value:
-            return self.tiles[value - 1]
-        faded = pygame.transform.grayscale(self.tiles[-1])
-        faded.set_alpha(128)
-        return faded
+        return self._rendered[value - 1] if value else self._blank

@@ -3,7 +3,7 @@
 import pygame
 
 from npuzzle.ui import theme
-from npuzzle.ui.image_tiles import REFERENCE_SIZE, ImageTiles, rounded
+from npuzzle.ui.image_tiles import REFERENCE_SIZE, ImageTiles
 
 
 def draw_background(screen: pygame.Surface) -> None:
@@ -28,7 +28,7 @@ def draw_board(
         rect = pygame.Rect(x, y, side, side)
 
         if image:
-            screen.blit(rounded(image.tile_for(value), theme.TILE_RADIUS), rect)
+            screen.blit(image.tile_for(value), rect)
         elif value:
             pygame.draw.rect(screen, theme.TILE_COLOR, rect, border_radius=theme.TILE_RADIUS)
             text = fonts.tile.render(str(value), True, theme.TEXT_COLOR)
