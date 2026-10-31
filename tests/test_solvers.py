@@ -41,5 +41,23 @@ def test_goal_state_needs_no_moves(algorithm):
     assert solve(algorithm, GOAL, GOAL).path == []
 
 
+@pytest.mark.parametrize("seed", range(25))
+def test_a_star_and_ucs_match_the_optimal_bfs_length(seed):
+    start = scrambled(seed, steps=60)
+    optimal = len(solve("BFS", start, GOAL).path)
+    assert len(solve("UCS", start, GOAL).path) == optimal
+    assert len(solve("A*", start, GOAL).path) == optimal
+
+
+def test_a_star_explores_fewer_states_than_bfs():
+    start = scrambled(7, steps=60)
+    assert solve("A*", start, GOAL).nodes < solve("BFS", start, GOAL).nodes
+
+
+def test_stop_check_ends_the_search_early():
+    result = solve("BFS", scrambled(1), GOAL, should_stop=lambda: True)
+    assert result.path is None
+
+
 def test_unsolvable_board_reports_no_path():
     assert solve("A*", UNSOLVABLE, GOAL).path is None

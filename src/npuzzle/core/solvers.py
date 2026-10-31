@@ -23,6 +23,8 @@ class SolveResult:
 
 
 class _QueueFrontier:
+    reopens = False
+
     def __init__(self):
         self._items = deque()
 
@@ -42,8 +44,9 @@ class _StackFrontier(_QueueFrontier):
 
 
 class _PriorityFrontier:
-    def __init__(self, priority: Callable[[int, State], int]):
+    def __init__(self, priority: Callable[[int, State], int], reopens: bool = False):
         self._priority = priority
+        self.reopens = reopens
         self._items = []
         self._order = count()
 
@@ -75,6 +78,7 @@ def _search(start: State, goal: State, frontier, should_stop: StopCheck | None) 
     # Each state stores only its parent, because copying the path into every
     # node runs out of memory on the very long paths DFS produces.
     parents: dict[State, tuple[State, str] | None] = {start: None}
+    best_cost = {start: 0}
     largest_frontier = 1
 
     while len(frontier):
@@ -82,12 +86,16 @@ def _search(start: State, goal: State, frontier, should_stop: StopCheck | None) 
             break
         largest_frontier = max(largest_frontier, len(frontier))
         cost, state = frontier.pop()
+        if cost > best_cost[state]:
+            continue
         if state == goal:
             memory = (largest_frontier + len(parents)) * ESTIMATED_BYTES_PER_STATE
             path = _rebuild_path(parents, goal)
             return SolveResult(path, len(parents), time.perf_counter() - started, memory)
         for direction, next_state in neighbors(state):
-            if next_state not in parents:
+            known_cost = best_cost.get(next_state)
+            if known_cost is None or (frontier.reopens and cost + 1 < known_cost):
+                best_cost[next_state] = cost + 1
                 parents[next_state] = (state, direction)
                 frontier.push((cost + 1, next_state))
 
@@ -98,7 +106,7 @@ ALGORITHMS: dict[str, Callable[[], object]] = {
     "BFS": _QueueFrontier,
     "DFS": _StackFrontier,
     "UCS": lambda: _PriorityFrontier(lambda cost, _: cost),
-    "A*": lambda: _PriorityFrontier(lambda cost, state: cost + manhattan(state)),
+    "A*": lambda: _PriorityFrontier(lambda cost, state: cost + manhattan(state), reopens=True),
     "Greedy": lambda: _PriorityFrontier(lambda _, state: manhattan(state)),
 }
 
