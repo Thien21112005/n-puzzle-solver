@@ -46,7 +46,7 @@ class _PriorityFrontier:
         self._order = count()
 
     def push(self, item):
-        cost, state, _ = item
+        cost, state = item
         heapq.heappush(self._items, (self._priority(cost, state), next(self._order), item))
 
     def pop(self):
@@ -56,22 +56,36 @@ class _PriorityFrontier:
         return len(self._items)
 
 
+def _rebuild_path(parents: dict[State, tuple[State, str] | None], goal: State) -> list[str]:
+    path = []
+    step = parents[goal]
+    while step is not None:
+        previous, direction = step
+        path.append(direction)
+        step = parents[previous]
+    path.reverse()
+    return path
+
+
 def _search(start: State, goal: State, frontier) -> SolveResult:
     started = time.perf_counter()
-    frontier.push((0, start, []))
-    visited = {start}
+    frontier.push((0, start))
+    # Each state stores only its parent, because copying the path into every
+    # node runs out of memory on the very long paths DFS produces.
+    parents: dict[State, tuple[State, str] | None] = {start: None}
     largest_frontier = 1
 
     while len(frontier):
         largest_frontier = max(largest_frontier, len(frontier))
-        cost, state, path = frontier.pop()
+        cost, state = frontier.pop()
         if state == goal:
-            memory = (largest_frontier + len(visited)) * ESTIMATED_BYTES_PER_STATE
-            return SolveResult(path, len(visited), time.perf_counter() - started, memory)
+            memory = (largest_frontier + len(parents)) * ESTIMATED_BYTES_PER_STATE
+            path = _rebuild_path(parents, goal)
+            return SolveResult(path, len(parents), time.perf_counter() - started, memory)
         for direction, next_state in neighbors(state):
-            if next_state not in visited:
-                visited.add(next_state)
-                frontier.push((cost + 1, next_state, path + [direction]))
+            if next_state not in parents:
+                parents[next_state] = (state, direction)
+                frontier.push((cost + 1, next_state))
 
     return SolveResult(None, 0, time.perf_counter() - started, 0)
 

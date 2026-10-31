@@ -3,7 +3,7 @@ import random
 import pytest
 
 from npuzzle.core.board import apply_move, goal_state, neighbors
-from npuzzle.core.solvers import solve
+from npuzzle.core.solvers import ALGORITHMS, solve
 
 GOAL = goal_state(3)
 UNSOLVABLE = (2, 1, 3, 4, 5, 6, 7, 8, 0)
@@ -25,7 +25,7 @@ def replay(state, path):
     return state
 
 
-@pytest.mark.parametrize("algorithm", ["BFS", "UCS", "A*", "Greedy"])
+@pytest.mark.parametrize("algorithm", ALGORITHMS)
 @pytest.mark.parametrize("seed", range(3))
 def test_solution_reaches_the_goal(algorithm, seed):
     start = scrambled(seed)
@@ -36,7 +36,7 @@ def test_solution_reaches_the_goal(algorithm, seed):
     assert result.memory_estimate > 0
 
 
-@pytest.mark.parametrize("algorithm", ["BFS", "UCS", "A*", "Greedy"])
+@pytest.mark.parametrize("algorithm", ALGORITHMS)
 def test_goal_state_needs_no_moves(algorithm):
     assert solve(algorithm, GOAL, GOAL).path == []
 
