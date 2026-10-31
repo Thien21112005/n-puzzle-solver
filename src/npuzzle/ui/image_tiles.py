@@ -16,11 +16,18 @@ def rounded(surface: pygame.Surface, radius: int) -> pygame.Surface:
     return result
 
 
+def center_square(picture: pygame.Surface) -> pygame.Surface:
+    """Crop the largest centered square, so wide or tall pictures keep their proportions."""
+    width, height = picture.get_size()
+    side = min(width, height)
+    return picture.subsurface(((width - side) // 2, (height - side) // 2, side, side))
+
+
 class ImageTiles:
     """A loaded picture, cut into one tile per board cell."""
 
     def __init__(self, path: str, rows: int = 3, cols: int = 3):
-        picture = pygame.image.load(path)
+        picture = center_square(pygame.image.load(path).convert_alpha())
         scaled = pygame.transform.smoothscale(
             picture, (GAME_WIDTH - TILE_GAP, BOARD_HEIGHT - TILE_GAP)
         )
