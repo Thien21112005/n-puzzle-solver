@@ -38,6 +38,7 @@ def test_reaching_the_goal_wins_and_blocks_moves():
     session.move("up")
     session.update(0)
     assert session.won
+    assert session.solved_by is None
     session.move("down")
     assert session.state == GOAL
 
@@ -62,6 +63,7 @@ def test_solver_playback_finishes_on_the_goal():
     session.update(2000)
     assert session.state == GOAL
     assert session.won
+    assert session.solved_by == "BFS"
     assert not session.solving
 
 
@@ -127,6 +129,20 @@ def test_skip_to_end_lands_on_the_goal_and_counts_the_moves():
     assert session.moves == steps
     assert session.won
     assert not session.solving
+
+
+def test_comparison_keeps_latest_run_per_algorithm_until_shuffle():
+    session = session_at(ONE_MOVE_AWAY)
+    assert session.comparison() == {}
+    for algorithm in ("BFS", "A*", "BFS"):
+        session.reset()
+        session.algorithm = algorithm
+        session.start_solving()
+        wait_for_search(session)
+    assert set(session.comparison()) == {"BFS", "A*"}
+    assert session.comparison()["BFS"] is session.records[-1]
+    session.shuffle()
+    assert session.comparison() == {}
 
 
 def test_unsolvable_board_reports_no_solution():

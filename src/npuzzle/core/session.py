@@ -44,8 +44,10 @@ class GameSession:
         self.algorithm = next(iter(ALGORITHMS))
         self.records: list[RunRecord] = []
         self._board_ids: dict[State, int] = {}
+        self._compared_board: int | None = None
         self.solving = False
         self.no_solution = False
+        self.solved_by: str | None = None
         self.solution: list[str] = []
         self._job: _SearchJob | None = None
         self._last_step_ms = 0
@@ -55,8 +57,13 @@ class GameSession:
     def searching(self) -> bool:
         return self._job is not None
 
+    def comparison(self) -> dict[str, RunRecord]:
+        """Return the latest run of each algorithm on the board solved last."""
+        return {r.algorithm: r for r in self.records if r.board_id == self._compared_board}
+
     def shuffle(self) -> None:
         self.cancel_solving()
+        self._compared_board = None
         self.state = random_state(self.size)
         self.initial_state = self.state
         self.moves = 0
@@ -92,6 +99,7 @@ class GameSession:
             self._job = None
         self.solving = False
         self.no_solution = False
+        self.solved_by = None
         self.solution = []
 
     def skip_to_end(self) -> None:
@@ -109,7 +117,9 @@ class GameSession:
             self.solving = False
             return
         self.solution = result.path
+        self.solved_by = job.algorithm
         board_id = self._board_ids.setdefault(job.board, len(self._board_ids) + 1)
+        self._compared_board = board_id
         self.records.append(
             RunRecord(
                 board_id,

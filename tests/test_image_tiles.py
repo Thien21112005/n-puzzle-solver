@@ -21,7 +21,7 @@ def test_wide_picture_is_center_cropped(display, tmp_path):
     image = ImageTiles(str(path))
 
     width, height = image.reference.get_size()
-    for x, y in [(2, 2), (width - 3, 2), (2, height - 3), (width - 3, height - 3)]:
+    for x, y in [(12, 12), (width - 13, 12), (12, height - 13), (width - 13, height - 13)]:
         assert_close(image.reference.get_at((x, y)), GREEN)
 
 
@@ -31,4 +31,4 @@ def test_palette_picture_can_be_loaded(display, tmp_path):
     path = tmp_path / "palette.bmp"
     pygame.image.save(picture, path)
 
-    assert_close(ImageTiles(str(path)).reference.get_at((5, 5)), RED)
+    assert_close(ImageTiles(str(path)).reference.get_at((40, 40)), RED)

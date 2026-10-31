@@ -1,39 +1,53 @@
-"""Colors, sizes and fonts of the interface."""
+"""Design tokens: Hanoi limewash walls and enamel house-number plates."""
 
 import pygame
 
-GAME_WIDTH = 400
-BOARD_HEIGHT = 400
-PANEL_HEIGHT = 150
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = BOARD_HEIGHT + PANEL_HEIGHT
-TILE_SIZE = GAME_WIDTH // 3
-TILE_GAP = 10
-TILE_RADIUS = 10
+from npuzzle.paths import asset_path
 
-BG_COLOR = (245, 245, 220)
-EXTENDED_BG_COLOR = (220, 230, 240)
-PANEL_COLOR = (230, 230, 230)
-TILE_COLOR = (120, 160, 180)
-EMPTY_COLOR = (220, 220, 220)
-TEXT_COLOR = (50, 50, 50)
-ACCENT_COLOR = (70, 130, 180)
-BORDER_COLOR = (60, 60, 60)
-BUTTON_COLOR = (100, 150, 200)
-BUTTON_HOVER = (80, 130, 180)
-BUTTON_DISABLED = (180, 180, 180)
-MENU_COLOR = (240, 240, 240)
-MENU_HOVER = (200, 200, 200)
-GREEN = (80, 200, 120)
-GREEN_HOVER = (100, 220, 140)
-TRASH_COLOR = (200, 80, 80)
-TRASH_HOVER = (220, 100, 100)
-RESET_COLOR = (150, 100, 200)
-RESET_HOVER = (170, 120, 220)
+WINDOW_SIZE = (1100, 680)
+UNIT = 8
+
+WALL = (227, 168, 43)
+WALL_SHADE = (196, 142, 28)
+COBALT = (18, 60, 156)
+COBALT_DEEP = (12, 44, 118)
+ENAMEL = (246, 245, 238)
+ENAMEL_SHADE = (232, 230, 220)
+SHUTTER = (47, 107, 79)
+SHUTTER_DEEP = (36, 84, 62)
+INK = (26, 26, 26)
+INK_SOFT = (72, 72, 76)
+ERROR = (160, 44, 24)
+RULE = (196, 201, 214)
+SELECTED = (222, 229, 245)
+HOVER = (236, 236, 232)
+DISABLED_FILL = (222, 220, 210)
+DISABLED_TEXT = (110, 108, 100)
+
+MARGIN = 4 * UNIT
+PLATE = 136
+PLATE_GAP = 12
+PLATE_RADIUS = 14
+PLATE_RIM = 6
+PANEL_RADIUS = 14
+CONTROL_RADIUS = 8
+CONTROL_HEIGHT = 44
+
+SLIDE_MS = 130
+RIPPLE_STEP_MS = 70
+RIPPLE_FADE_MS = 220
+
+
+def _font(weight: str, size: int) -> pygame.font.Font:
+    return pygame.font.Font(asset_path("fonts", f"BeVietnamPro-{weight}.ttf"), size)
 
 
 class Fonts:
     def __init__(self):
-        self.tile = pygame.font.SysFont("Arial", 50, bold=True)
-        self.heading = pygame.font.SysFont("Arial", 20, bold=True)
-        self.body = pygame.font.SysFont("Arial", 16, bold=True)
+        self.plate = _font("Bold", 72)
+        self.title = _font("ExtraBold", 44)
+        self.count = _font("Bold", 30)
+        self.heading = _font("Bold", 20)
+        self.body = _font("Regular", 15)
+        self.strong = _font("SemiBold", 15)
+        self.small = _font("Regular", 14)

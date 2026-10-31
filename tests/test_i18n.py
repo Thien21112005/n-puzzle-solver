@@ -16,7 +16,7 @@ def test_every_language_has_the_same_keys_and_placeholders():
 
 
 def test_translator_fills_values_and_rejects_unknown_languages():
-    assert Translator("en")("moves", count=3) == "Moves: 3"
+    assert Translator("en")("won", count=3) == "You won in 3 moves!"
     assert Translator("fr").language == "vi"
 
 

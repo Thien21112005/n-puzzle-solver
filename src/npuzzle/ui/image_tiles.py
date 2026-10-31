@@ -1,19 +1,10 @@
-"""Turn a picture into puzzle tiles."""
+"""Turn a picture into puzzle plates."""
 
 import pygame
 
-from npuzzle.ui.theme import BOARD_HEIGHT, GAME_WIDTH, TILE_GAP, TILE_RADIUS, TILE_SIZE
+from npuzzle.ui import draw, theme
 
-REFERENCE_SIZE = 150
-
-
-def rounded(surface: pygame.Surface, radius: int) -> pygame.Surface:
-    width, height = surface.get_size()
-    mask = pygame.Surface((width, height), pygame.SRCALPHA)
-    pygame.draw.rect(mask, (255, 255, 255, 255), (0, 0, width, height), border_radius=radius)
-    result = surface.copy().convert_alpha()
-    result.blit(mask, (0, 0), None, pygame.BLEND_RGBA_MULT)
-    return result
+REFERENCE_SIZE = 96
 
 
 def center_square(picture: pygame.Surface) -> pygame.Surface:
@@ -24,27 +15,24 @@ def center_square(picture: pygame.Surface) -> pygame.Surface:
 
 
 class ImageTiles:
-    """A loaded picture, cut into one tile per board cell."""
+    """A loaded picture, cut into one plate per board cell."""
 
     def __init__(self, path: str, rows: int = 3, cols: int = 3):
         picture = center_square(pygame.image.load(path).convert_alpha())
-        scaled = pygame.transform.smoothscale(
-            picture, (GAME_WIDTH - TILE_GAP, BOARD_HEIGHT - TILE_GAP)
-        )
-        side = TILE_SIZE - TILE_GAP
-        self.tiles = []
+        side = theme.PLATE
+        pitch = side + theme.PLATE_GAP
+        whole = pitch * cols - theme.PLATE_GAP
+        scaled = pygame.transform.smoothscale(picture, (whole, whole))
+        # Plates are prepared once, because rounding them on every frame is expensive.
+        self.plates = []
         for row in range(rows):
             for col in range(cols):
                 tile = pygame.Surface((side, side), pygame.SRCALPHA)
-                tile.blit(scaled, (0, 0), (col * TILE_SIZE, row * TILE_SIZE, side, side))
-                self.tiles.append(tile)
-        self.reference = pygame.transform.smoothscale(scaled, (REFERENCE_SIZE, REFERENCE_SIZE))
-        # Rounding every tile on every frame is expensive, so it happens once here.
-        self._rendered = [rounded(tile, TILE_RADIUS) for tile in self.tiles]
-        faded = pygame.transform.grayscale(self.tiles[-1])
-        faded.set_alpha(128)
-        self._blank = rounded(faded, TILE_RADIUS)
+                tile.blit(scaled, (0, 0), (col * pitch, row * pitch, side, side))
+                self.plates.append(draw.clip_rounded(tile, theme.PLATE_RADIUS))
+        reference = pygame.transform.smoothscale(picture, (REFERENCE_SIZE, REFERENCE_SIZE))
+        self.reference = draw.clip_rounded(reference, theme.CONTROL_RADIUS)
 
-    def tile_for(self, value: int) -> pygame.Surface:
-        """Return the tile of a value; the blank shows the last cell, faded."""
-        return self._rendered[value - 1] if value else self._blank
+    def plate_for(self, value: int) -> pygame.Surface:
+        """Return the plate of a value; 0 is the last cell, shown once the board is won."""
+        return self.plates[value - 1]

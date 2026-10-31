@@ -1,146 +1,205 @@
-"""The control panel below the board: status text, buttons and algorithm menu."""
+"""The white enamel panel: comparison table, status, actions, picture and language."""
 
 import pygame
 
-from npuzzle.core.session import GameSession
+from npuzzle.core.session import GameSession, RunRecord
 from npuzzle.core.solvers import ALGORITHMS
-from npuzzle.i18n import Translator
-from npuzzle.paths import asset_path
-from npuzzle.ui import theme
+from npuzzle.i18n import LANGUAGE_NAMES, Translator, format_bytes, format_count, format_seconds
+from npuzzle.ui import draw, theme
+from npuzzle.ui.image_tiles import REFERENCE_SIZE, ImageTiles
+from npuzzle.ui.widgets import Button, Segmented
 
-BUTTON_WIDTH = 80
-BUTTON_HEIGHT = 35
-BUTTON_MARGIN = 10
-ICON_BUTTON_SIZE = 35
-ICON_SIZE = 20
+PADDING = 3 * theme.UNIT
+ROW_HEIGHT = 44
+HEADER_HEIGHT = 32
+RADIO_RADIUS = 7
+# Right edge of each column measured from the table's left, and how each one is read and shown.
+COLUMNS = (
+    ("col_nodes", 200, lambda r: r.nodes, lambda r, lang: format_count(r.nodes, lang)),
+    ("col_steps", 272, lambda r: r.steps, lambda r, lang: format_count(r.steps, lang)),
+    ("col_time", 372, lambda r: r.seconds, lambda r, lang: format_seconds(r.seconds, lang)),
+    (
+        "col_memory",
+        524,
+        lambda r: r.memory_estimate,
+        lambda r, lang: format_bytes(r.memory_estimate, lang),
+    ),
+)
 
 
-def _load_icon(name: str) -> pygame.Surface:
-    icon = pygame.image.load(asset_path("icons", name)).convert_alpha()
-    return pygame.transform.smoothscale(icon, (ICON_SIZE, ICON_SIZE))
-
-
-class ControlPanel:
-    def __init__(self, fonts: theme.Fonts, t: Translator):
+class SidePanel:
+    def __init__(self, rect: pygame.Rect, fonts: theme.Fonts, t: Translator):
+        self.rect = rect
         self.fonts = fonts
         self.t = t
-        self.menu_open = False
-        self.trash_icon = _load_icon("trash.png")
-        self.reset_icon = _load_icon("reset.png")
-
-        y = theme.BOARD_HEIGHT + 80
-        names = ["shuffle", "choose", "algorithm", "solve"]
-        total = len(names) * BUTTON_WIDTH + (len(names) - 1) * BUTTON_MARGIN
-        x = (theme.SCREEN_WIDTH - total) // 2
-        self.buttons = {
+        left, top = rect.x + PADDING, rect.y + PADDING
+        self.inner_width = rect.width - 2 * PADDING
+        self.table_top = top + 40
+        self.table_x = left
+        self.rows = {
             name: pygame.Rect(
-                x + index * (BUTTON_WIDTH + BUTTON_MARGIN), y, BUTTON_WIDTH, BUTTON_HEIGHT
+                left, self.table_top + HEADER_HEIGHT + i * ROW_HEIGHT, self.inner_width, ROW_HEIGHT
             )
-            for index, name in enumerate(names)
+            for i, name in enumerate(ALGORITHMS)
         }
-        top = theme.BOARD_HEIGHT + 10
-        self.skip_rect = pygame.Rect(10, top, BUTTON_WIDTH, BUTTON_HEIGHT)
-        reset_x = theme.SCREEN_WIDTH - ICON_BUTTON_SIZE - 10
-        self.reset_rect = pygame.Rect(reset_x, top, ICON_BUTTON_SIZE, ICON_BUTTON_SIZE)
-        trash_x = reset_x - ICON_BUTTON_SIZE - 5
-        self.trash_rect = pygame.Rect(trash_x, top, ICON_BUTTON_SIZE, ICON_BUTTON_SIZE)
+        table_bottom = self.table_top + HEADER_HEIGHT + len(ALGORITHMS) * ROW_HEIGHT
+        self.note_y = table_bottom + 8
+        self.status_rect = pygame.Rect(left, self.note_y + 32, self.inner_width, 32)
 
-        algorithm = self.buttons["algorithm"]
-        menu_top = y - BUTTON_HEIGHT * len(ALGORITHMS)
-        self.menu_options = {
-            name: pygame.Rect(
-                algorithm.x, menu_top + index * BUTTON_HEIGHT, BUTTON_WIDTH, BUTTON_HEIGHT
+        y = self.status_rect.bottom + 12
+        h = theme.CONTROL_HEIGHT
+        self.solve = Button("solve", pygame.Rect(left, y, 196, h), style="primary")
+        self.skip = Button("skip", pygame.Rect(left + 204, y, 96, h), style="quiet")
+        self.shuffle = Button("shuffle", pygame.Rect(left + 308, y, 104, h))
+        self.reset = Button("reset", pygame.Rect(left + 420, y, 104, h), style="quiet")
+
+        self.picture_y = y + h + 40
+        text_x = left + REFERENCE_SIZE + 16
+        button_y = self.picture_y + REFERENCE_SIZE - h
+        self.choose = Button("choose", pygame.Rect(text_x, button_y, 96, h))
+        self.remove = Button("remove", pygame.Rect(text_x + 104, button_y, 88, h), style="quiet")
+        self.buttons = [self.solve, self.skip, self.shuffle, self.reset, self.choose, self.remove]
+        language_rect = pygame.Rect(left + self.inner_width - 192, button_y, 192, h)
+        self.language = Segmented(language_rect, LANGUAGE_NAMES)
+
+    def _update_controls(self, session: GameSession, image: ImageTiles | None) -> None:
+        t = self.t
+        self.solve.label = (
+            t("cancel") if session.solving else t("solve_with", algorithm=session.algorithm)
+        )
+        self.solve.style = "quiet" if session.solving else "primary"
+        self.solve.enabled = session.solving or not session.won
+        self.skip.label = t("skip")
+        self.skip.enabled = bool(session.solution)
+        self.shuffle.label = t("shuffle")
+        self.shuffle.enabled = not session.solving
+        self.reset.label = t("reset")
+        self.choose.label = t("change_image") if image else t("choose_image")
+        self.remove.label = t("remove_image")
+        self.remove.visible = image is not None
+
+    def action_at(self, pos) -> str | None:
+        for button in self.buttons:
+            if button.hit(pos):
+                return button.action
+        return None
+
+    def algorithm_at(self, pos) -> str | None:
+        for name, row in self.rows.items():
+            if row.collidepoint(pos):
+                return name
+        return None
+
+    def _draw_table(self, screen, session: GameSession, mouse) -> None:
+        fonts, t = self.fonts, self.t
+        header_y = self.table_top + HEADER_HEIGHT // 2
+        draw.text(
+            screen, fonts.strong, t("col_algorithm"), theme.INK, midleft=(self.table_x, header_y)
+        )
+        for key, right, _, _ in COLUMNS:
+            draw.text(
+                screen, fonts.strong, t(key), theme.INK, midright=(self.table_x + right, header_y)
             )
-            for index, name in enumerate(ALGORITHMS)
-        }
+        rule_y = self.table_top + HEADER_HEIGHT - 1
+        x_end = self.table_x + self.inner_width
+        pygame.draw.line(screen, theme.COBALT, (self.table_x, rule_y), (x_end, rule_y), 2)
 
-    def _draw_frame(self, screen, rect, base, hover, enabled=True, disabled=None):
-        over = rect.collidepoint(pygame.mouse.get_pos())
-        color = disabled if not enabled and disabled else hover if over else base
-        pygame.draw.rect(screen, color, rect, border_radius=8)
-        pygame.draw.rect(screen, theme.BORDER_COLOR, rect, 2, border_radius=8)
+        records = session.comparison()
+        best = {}
+        if records:
+            best = {key: min(read(r) for r in records.values()) for key, _, read, _ in COLUMNS}
+        for name, row in self.rows.items():
+            self._draw_row(screen, session, name, row, records.get(name), best, mouse)
 
-    def _draw_button(self, screen, rect, label, base, hover, enabled=True, disabled=None):
-        self._draw_frame(screen, rect, base, hover, enabled, disabled)
-        text = self.fonts.body.render(label, True, theme.TEXT_COLOR)
-        screen.blit(text, text.get_rect(center=rect.center))
+    def _draw_row(self, screen, session, name, row, record: RunRecord | None, best, mouse) -> None:
+        fonts = self.fonts
+        selected = name == session.algorithm
+        if selected:
+            screen.blit(draw.rounded(row.size, 6, theme.SELECTED), row)
+        elif row.collidepoint(mouse) and not session.solving:
+            screen.blit(draw.rounded(row.size, 6, theme.HOVER), row)
+        radio = (row.x + 16, row.centery)
+        pygame.draw.circle(screen, theme.COBALT, radio, RADIO_RADIUS, 2)
+        if selected:
+            pygame.draw.circle(screen, theme.COBALT, radio, RADIO_RADIUS - 4)
+        draw.text(screen, fonts.strong, name, theme.INK, midleft=(row.x + 32, row.centery))
+        pygame.draw.line(screen, theme.RULE, (row.x, row.bottom - 1), (row.right, row.bottom - 1))
+        for key, right, read, show in COLUMNS:
+            x = self.table_x + right
+            if record is None:
+                draw.tabular_text(screen, fonts.body, "—", theme.INK_SOFT, x, row.centery)
+                continue
+            is_best = read(record) == best[key]
+            font = fonts.strong if is_best else fonts.body
+            color = theme.SHUTTER if is_best else theme.INK
+            draw.tabular_text(screen, font, show(record, self.t.language), color, x, row.centery)
 
-    def _draw_icon_button(self, screen, rect, icon, base, hover):
-        self._draw_frame(screen, rect, base, hover)
-        screen.blit(icon, icon.get_rect(center=rect.center))
-
-    def _draw_centered(self, screen, font, text, color, y):
-        surface = font.render(text, True, color)
-        screen.blit(surface, (theme.SCREEN_WIDTH // 2 - surface.get_width() // 2, y))
-
-    def draw(self, screen, session: GameSession, using_image: bool) -> None:
-        panel = pygame.Rect(0, theme.BOARD_HEIGHT, theme.SCREEN_WIDTH, theme.PANEL_HEIGHT)
-        pygame.draw.rect(screen, theme.PANEL_COLOR, panel)
-        pygame.draw.line(
-            screen,
-            theme.ACCENT_COLOR,
-            (0, theme.BOARD_HEIGHT),
-            (theme.SCREEN_WIDTH, theme.BOARD_HEIGHT),
-            2,
-        )
-        top = theme.BOARD_HEIGHT
-        self._draw_centered(
-            screen,
-            self.fonts.heading,
-            self.t("moves", count=session.moves),
-            theme.TEXT_COLOR,
-            top + 15,
-        )
+    def _status(self, session: GameSession, notice: str | None) -> tuple[str, tuple]:
+        t = self.t
+        if notice:
+            return notice, theme.ERROR
+        if session.searching:
+            return t("searching", algorithm=session.algorithm), theme.COBALT
         if session.solving:
-            if session.searching:
-                status = self.t("searching", algorithm=session.algorithm)
-            else:
-                status = self.t("playing", algorithm=session.algorithm, count=len(session.solution))
-            self._draw_centered(screen, self.fonts.body, status, theme.ACCENT_COLOR, top + 45)
-        elif session.no_solution:
-            status = self.t("no_solution", algorithm=session.algorithm)
-            self._draw_centered(screen, self.fonts.body, status, theme.ACCENT_COLOR, top + 45)
-
-        self._draw_button(
-            screen, self.buttons["shuffle"], self.t("shuffle"), theme.GREEN, theme.GREEN_HOVER
-        )
-        self._draw_button(
-            screen,
-            self.buttons["choose"],
-            self.t("choose_image"),
-            theme.BUTTON_COLOR,
-            theme.BUTTON_HOVER,
-        )
-        self._draw_button(
-            screen,
-            self.buttons["algorithm"],
-            session.algorithm,
-            theme.BUTTON_COLOR,
-            theme.BUTTON_HOVER,
-        )
-        self._draw_button(
-            screen,
-            self.buttons["solve"],
-            self.t("cancel" if session.solving else "solve"),
-            theme.BUTTON_COLOR,
-            theme.BUTTON_HOVER,
-            enabled=not session.won,
-            disabled=theme.BUTTON_DISABLED,
-        )
-        if self.menu_open:
-            for name, rect in self.menu_options.items():
-                self._draw_button(screen, rect, name, theme.MENU_COLOR, theme.MENU_HOVER)
-
-        self._draw_icon_button(
-            screen, self.reset_rect, self.reset_icon, theme.RESET_COLOR, theme.RESET_HOVER
-        )
-        if using_image:
-            self._draw_icon_button(
-                screen, self.trash_rect, self.trash_icon, theme.TRASH_COLOR, theme.TRASH_HOVER
-            )
-        if session.solving and session.solution:
-            self._draw_button(
-                screen, self.skip_rect, self.t("skip"), theme.BUTTON_COLOR, theme.BUTTON_HOVER
-            )
+            count = format_count(len(session.solution), t.language)
+            return t("playing", algorithm=session.algorithm, count=count), theme.COBALT
+        if session.no_solution:
+            return t("no_solution", algorithm=session.algorithm), theme.ERROR
         if session.won:
-            self._draw_centered(screen, self.fonts.heading, self.t("won"), theme.GREEN, top + 120)
+            count = format_count(session.moves, t.language)
+            if session.solved_by:
+                return t("solved", algorithm=session.solved_by, count=count), theme.SHUTTER
+            return t("won", count=count), theme.SHUTTER
+        return t("hint"), theme.INK_SOFT
+
+    def _draw_number_preview(self, screen, frame: pygame.Rect) -> None:
+        """Show a tiny numbered board, standing in for the picture while none is loaded."""
+        screen.blit(draw.rounded(frame.size, theme.CONTROL_RADIUS, theme.ENAMEL_SHADE), frame)
+        cell, gap = 24, 4
+        start_x = frame.x + (frame.width - 3 * cell - 2 * gap) // 2
+        start_y = frame.y + (frame.height - 3 * cell - 2 * gap) // 2
+        plate = draw.rounded((cell, cell), 4, theme.COBALT)
+        for index in range(8):
+            row, col = divmod(index, 3)
+            screen.blit(plate, (start_x + col * (cell + gap), start_y + row * (cell + gap)))
+
+    def _draw_picture(self, screen, image: ImageTiles | None) -> None:
+        fonts, t = self.fonts, self.t
+        x, y = self.table_x, self.picture_y
+        frame = pygame.Rect(x, y, REFERENCE_SIZE, REFERENCE_SIZE)
+        text_x = frame.right + 16
+        if image:
+            screen.blit(image.reference, frame)
+        else:
+            self._draw_number_preview(screen, frame)
+        title = t("picture_on") if image else t("picture_off")
+        detail = t("reference") if image else t("picture_hint")
+        draw.text(screen, fonts.strong, title, theme.INK, topleft=(text_x, y))
+        draw.text(screen, fonts.small, detail, theme.INK_SOFT, topleft=(text_x, y + 22))
+        label = (self.language.rect.x, y)
+        draw.text(screen, fonts.strong, t("language"), theme.INK, topleft=label)
+
+    def draw(self, screen, session, image, notice: str | None, mouse) -> None:
+        self._update_controls(session, image)
+        fonts, t = self.fonts, self.t
+        shadow = draw.soft_shadow(self.rect.size, theme.PANEL_RADIUS, 70)
+        screen.blit(shadow, self.rect.move(-8, -4))
+        screen.blit(draw.rounded(self.rect.size, theme.PANEL_RADIUS, theme.ENAMEL), self.rect)
+        heading_pos = (self.table_x, self.rect.y + PADDING)
+        draw.text(screen, fonts.heading, t("comparison"), theme.COBALT, topleft=heading_pos)
+        self._draw_table(screen, session, mouse)
+        note_pos = (self.table_x, self.note_y)
+        note = t("table_note") if session.comparison() else t("table_empty")
+        draw.text(screen, fonts.small, note, theme.INK_SOFT, topleft=note_pos)
+
+        message, color = self._status(session, notice)
+        message = draw.fit_text(fonts.strong, message, self.status_rect.width)
+        draw.text(screen, fonts.strong, message, color, midleft=self.status_rect.midleft)
+        for button in self.buttons:
+            button.draw(screen, fonts, mouse)
+        rule_y = self.picture_y - 20
+        pygame.draw.line(
+            screen, theme.RULE, (self.table_x, rule_y), (self.table_x + self.inner_width, rule_y)
+        )
+        self._draw_picture(screen, image)
+        self.language.draw(screen, fonts, t.language, mouse)
