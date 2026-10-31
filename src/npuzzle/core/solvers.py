@@ -11,6 +11,8 @@ from npuzzle.core.board import State, manhattan, neighbors
 
 ESTIMATED_BYTES_PER_STATE = 200
 
+StopCheck = Callable[[], bool]
+
 
 @dataclass(frozen=True)
 class SolveResult:
@@ -67,7 +69,7 @@ def _rebuild_path(parents: dict[State, tuple[State, str] | None], goal: State) -
     return path
 
 
-def _search(start: State, goal: State, frontier) -> SolveResult:
+def _search(start: State, goal: State, frontier, should_stop: StopCheck | None) -> SolveResult:
     started = time.perf_counter()
     frontier.push((0, start))
     # Each state stores only its parent, because copying the path into every
@@ -76,6 +78,8 @@ def _search(start: State, goal: State, frontier) -> SolveResult:
     largest_frontier = 1
 
     while len(frontier):
+        if should_stop is not None and should_stop():
+            break
         largest_frontier = max(largest_frontier, len(frontier))
         cost, state = frontier.pop()
         if state == goal:
@@ -90,34 +94,16 @@ def _search(start: State, goal: State, frontier) -> SolveResult:
     return SolveResult(None, 0, time.perf_counter() - started, 0)
 
 
-def _breadth_first(start: State, goal: State) -> SolveResult:
-    return _search(start, goal, _QueueFrontier())
-
-
-def _depth_first(start: State, goal: State) -> SolveResult:
-    return _search(start, goal, _StackFrontier())
-
-
-def _uniform_cost(start: State, goal: State) -> SolveResult:
-    return _search(start, goal, _PriorityFrontier(lambda cost, _: cost))
-
-
-def _a_star(start: State, goal: State) -> SolveResult:
-    return _search(start, goal, _PriorityFrontier(lambda cost, state: cost + manhattan(state)))
-
-
-def _greedy(start: State, goal: State) -> SolveResult:
-    return _search(start, goal, _PriorityFrontier(lambda _, state: manhattan(state)))
-
-
-ALGORITHMS: dict[str, Callable[[State, State], SolveResult]] = {
-    "BFS": _breadth_first,
-    "DFS": _depth_first,
-    "UCS": _uniform_cost,
-    "A*": _a_star,
-    "Greedy": _greedy,
+ALGORITHMS: dict[str, Callable[[], object]] = {
+    "BFS": _QueueFrontier,
+    "DFS": _StackFrontier,
+    "UCS": lambda: _PriorityFrontier(lambda cost, _: cost),
+    "A*": lambda: _PriorityFrontier(lambda cost, state: cost + manhattan(state)),
+    "Greedy": lambda: _PriorityFrontier(lambda _, state: manhattan(state)),
 }
 
 
-def solve(algorithm: str, start: State, goal: State) -> SolveResult:
-    return ALGORITHMS[algorithm](start, goal)
+def solve(
+    algorithm: str, start: State, goal: State, should_stop: StopCheck | None = None
+) -> SolveResult:
+    return _search(start, goal, ALGORITHMS[algorithm](), should_stop)

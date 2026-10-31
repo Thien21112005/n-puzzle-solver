@@ -59,17 +59,6 @@ class App:
             return
         self.session.scramble()
 
-    def solve(self) -> None:
-        record = self.session.start_solving()
-        if record is None:
-            print(f"Không tìm thấy giải pháp bằng {self.session.algorithm}")
-        else:
-            print(
-                f"ID {record.board_id} - {record.algorithm}: Nodes: {record.nodes}, "
-                f"Steps: {record.steps}, Time: {record.seconds:.4f}s, "
-                f"Memory: {record.memory_estimate} bytes (estimate)"
-            )
-
     def handle_click(self, pos) -> None:
         panel, session = self.panel, self.session
         if panel.buttons["shuffle"].collidepoint(pos) and not session.solving:
@@ -82,8 +71,11 @@ class App:
             self.image = None
         elif panel.buttons["algorithm"].collidepoint(pos):
             panel.menu_open = not panel.menu_open
-        elif panel.buttons["solve"].collidepoint(pos) and not session.solving and not session.won:
-            self.solve()
+        elif panel.buttons["solve"].collidepoint(pos):
+            if session.solving:
+                session.cancel_solving()
+            else:
+                session.start_solving()
         elif panel.menu_open:
             for name, rect in panel.menu_options.items():
                 if rect.collidepoint(pos):

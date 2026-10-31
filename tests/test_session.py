@@ -1,8 +1,11 @@
-from npuzzle.core.board import apply_move, goal_state
+import time
+
+from npuzzle.core.board import apply_move, goal_state, random_state
 from npuzzle.core.session import GameSession
 
 GOAL = goal_state(3)
 ONE_MOVE_AWAY = apply_move(GOAL, "down")
+UNSOLVABLE = (2, 1, 3, 4, 5, 6, 7, 8, 0)
 
 
 def session_at(state) -> GameSession:
@@ -12,6 +15,14 @@ def session_at(state) -> GameSession:
     session.moves = 0
     session.won = False
     return session
+
+
+def wait_for_search(session: GameSession) -> None:
+    deadline = time.monotonic() + 30
+    while session.searching:
+        assert time.monotonic() < deadline
+        session.update(0)
+        time.sleep(0.001)
 
 
 def test_move_counts_only_legal_moves():
@@ -43,8 +54,10 @@ def test_reset_restores_the_initial_board():
 
 def test_solver_playback_finishes_on_the_goal():
     session = session_at(ONE_MOVE_AWAY)
-    record = session.start_solving()
-    assert record.steps == 1
+    session.start_solving()
+    assert session.solving
+    wait_for_search(session)
+    assert session.records[-1].steps == 1
     session.update(1000)
     session.update(2000)
     assert session.state == GOAL
@@ -54,9 +67,34 @@ def test_solver_playback_finishes_on_the_goal():
 
 def test_records_share_an_id_for_the_same_board():
     session = session_at(ONE_MOVE_AWAY)
-    first = session.start_solving()
+    session.start_solving()
+    wait_for_search(session)
     session.reset()
     session.algorithm = "A*"
-    second = session.start_solving()
-    assert first.board_id == second.board_id
+    session.start_solving()
+    wait_for_search(session)
+    assert session.records[0].board_id == session.records[1].board_id
     assert len(session.records) == 2
+
+
+def test_cancel_stops_the_search_and_keeps_the_board():
+    session = session_at(random_state(3))
+    board = session.state
+    session.start_solving()
+    job = session._job
+    session.cancel_solving()
+    job.join(timeout=5)
+    assert not job.is_alive()
+    assert not session.solving
+    assert not session.searching
+    assert session.state == board
+    session.update(0)
+    assert session.records == []
+
+
+def test_unsolvable_board_reports_no_solution():
+    session = session_at(UNSOLVABLE)
+    session.start_solving()
+    wait_for_search(session)
+    assert session.no_solution
+    assert not session.solving

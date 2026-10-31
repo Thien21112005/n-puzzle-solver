@@ -83,7 +83,13 @@ class ControlPanel:
             screen, self.fonts.heading, f"Moves: {session.moves}", theme.TEXT_COLOR, top + 15
         )
         if session.solving:
-            status = f"Đang giải bằng {session.algorithm}: {len(session.solution)} bước còn lại"
+            if session.searching:
+                status = f"Đang tìm giải pháp bằng {session.algorithm}..."
+            else:
+                status = f"Đang giải bằng {session.algorithm}: {len(session.solution)} bước còn lại"
+            self._draw_centered(screen, self.fonts.body, status, theme.ACCENT_COLOR, top + 45)
+        elif session.no_solution:
+            status = f"Không tìm thấy giải pháp bằng {session.algorithm}"
             self._draw_centered(screen, self.fonts.body, status, theme.ACCENT_COLOR, top + 45)
 
         self._draw_button(
@@ -102,10 +108,10 @@ class ControlPanel:
         self._draw_button(
             screen,
             self.buttons["solve"],
-            "Solve",
+            "Cancel" if session.solving else "Solve",
             theme.BUTTON_COLOR,
             theme.BUTTON_HOVER,
-            enabled=not session.solving,
+            enabled=not session.won,
             disabled=theme.BUTTON_DISABLED,
         )
         if self.menu_open:
