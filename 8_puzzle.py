@@ -6,6 +6,7 @@ from collections import deque
 from tkinter import Tk, filedialog
 from tkinter import messagebox
 import heapq
+import time
 
 # Kích thước màn hình
 GAME_WIDTH, HEIGHT = 400, 400
@@ -57,6 +58,10 @@ algorithms = ["BFS", "DFS", "UCS", "A*", "Greedy"]
 current_algo = "BFS"
 show_algo_menu = False
 
+# Lưu trữ kết quả và ID trạng thái
+results = []
+state_ids = {}
+
 
 # Trạng thái ban đầu
 def tao_state_random():
@@ -72,7 +77,6 @@ def tao_state_random():
             tmp.add(hehe)
         dau.append(lst)
     return dau
-
 
 
 # Trạng thái đích
@@ -232,15 +236,21 @@ def heuristic(state):
 
 def bfs_solve(initial_state, goal_state):
     """Giải bài toán bằng thuật toán BFS"""
+    start_time = time.time()
     queue = deque([(initial_state, [])])
     visited = set()
     visited.add(state_to_tuple(initial_state))
+    max_q_size = 1
 
     while queue:
+        max_q_size = max(max_q_size, len(queue))
         current_state, path = queue.popleft()
 
         if current_state == goal_state:
-            return path
+            time_delta = time.time() - start_time
+            nodes = len(visited)
+            mem_estimate = (max_q_size + nodes) * 200  # Ước lượng bytes (khoảng 200 bytes/state)
+            return path, nodes, time_delta, mem_estimate
 
         for move in get_possible_moves(current_state):
             direction, _, _ = move
@@ -251,20 +261,27 @@ def bfs_solve(initial_state, goal_state):
                 visited.add(new_state_tuple)
                 queue.append((new_state, path + [direction]))
 
-    return None
+    time_delta = time.time() - start_time
+    return None, 0, time_delta, 0
 
 
 def dfs_solve(initial_state, goal_state):
     """Giải bài toán bằng thuật toán DFS"""
+    start_time = time.time()
     stack = [(initial_state, [])]
     visited = set()
     visited.add(state_to_tuple(initial_state))
+    max_stack_size = 1
 
     while stack:
+        max_stack_size = max(max_stack_size, len(stack))
         current_state, path = stack.pop()
 
         if current_state == goal_state:
-            return path
+            time_delta = time.time() - start_time
+            nodes = len(visited)
+            mem_estimate = (max_stack_size + nodes) * 200
+            return path, nodes, time_delta, mem_estimate
 
         for move in get_possible_moves(current_state):
             direction, _, _ = move
@@ -275,21 +292,28 @@ def dfs_solve(initial_state, goal_state):
                 visited.add(new_state_tuple)
                 stack.append((new_state, path + [direction]))
 
-    return None
+    time_delta = time.time() - start_time
+    return None, 0, time_delta, 0
 
 
 def ucs_solve(initial_state, goal_state):
     """Giải bài toán bằng thuật toán UCS (Uniform Cost Search)"""
+    start_time = time.time()
     priority_queue = []
     heapq.heappush(priority_queue, (0, initial_state, []))  # (cost, state, path)
     visited = set()
     visited.add(state_to_tuple(initial_state))
+    max_pq_size = 1
 
     while priority_queue:
+        max_pq_size = max(max_pq_size, len(priority_queue))
         cost, current_state, path = heapq.heappop(priority_queue)
 
         if current_state == goal_state:
-            return path
+            time_delta = time.time() - start_time
+            nodes = len(visited)
+            mem_estimate = (max_pq_size + nodes) * 200
+            return path, nodes, time_delta, mem_estimate
 
         for move in get_possible_moves(current_state):
             direction, _, _ = move
@@ -301,21 +325,28 @@ def ucs_solve(initial_state, goal_state):
                 new_cost = cost + 1
                 heapq.heappush(priority_queue, (new_cost, new_state, path + [direction]))
 
-    return None
+    time_delta = time.time() - start_time
+    return None, 0, time_delta, 0
 
 
 def a_star_solve(initial_state, goal_state):
     """Giải bài toán bằng thuật toán A*"""
+    start_time = time.time()
     priority_queue = []
     heapq.heappush(priority_queue, (0 + heuristic(initial_state), 0, initial_state, []))  # (f, g, state, path)
     visited = set()
     visited.add(state_to_tuple(initial_state))
+    max_pq_size = 1
 
     while priority_queue:
+        max_pq_size = max(max_pq_size, len(priority_queue))
         _, g, current_state, path = heapq.heappop(priority_queue)
 
         if current_state == goal_state:
-            return path
+            time_delta = time.time() - start_time
+            nodes = len(visited)
+            mem_estimate = (max_pq_size + nodes) * 200
+            return path, nodes, time_delta, mem_estimate
 
         for move in get_possible_moves(current_state):
             direction, _, _ = move
@@ -328,21 +359,28 @@ def a_star_solve(initial_state, goal_state):
                 f = new_g + heuristic(new_state)
                 heapq.heappush(priority_queue, (f, new_g, new_state, path + [direction]))
 
-    return None
+    time_delta = time.time() - start_time
+    return None, 0, time_delta, 0
 
 
 def greedy_solve(initial_state, goal_state):
     """Giải bài toán bằng thuật toán Greedy Best-First Search"""
+    start_time = time.time()
     priority_queue = []
     heapq.heappush(priority_queue, (heuristic(initial_state), initial_state, []))  # (h, state, path)
     visited = set()
     visited.add(state_to_tuple(initial_state))
+    max_pq_size = 1
 
     while priority_queue:
+        max_pq_size = max(max_pq_size, len(priority_queue))
         _, current_state, path = heapq.heappop(priority_queue)
 
         if current_state == goal_state:
-            return path
+            time_delta = time.time() - start_time
+            nodes = len(visited)
+            mem_estimate = (max_pq_size + nodes) * 200
+            return path, nodes, time_delta, mem_estimate
 
         for move in get_possible_moves(current_state):
             direction, _, _ = move
@@ -354,7 +392,8 @@ def greedy_solve(initial_state, goal_state):
                 h = heuristic(new_state)
                 heapq.heappush(priority_queue, (h, new_state, path + [direction]))
 
-    return None
+    time_delta = time.time() - start_time
+    return None, 0, time_delta, 0
 
 
 def start_solution(algo):
@@ -362,19 +401,36 @@ def start_solution(algo):
     global solving, solution_path
 
     solving = True
-    if algo == "BFS":
-        solution_path = bfs_solve(state, goal_state)
-    elif algo == "DFS":
-        solution_path = dfs_solve(state, goal_state)
-    elif algo == "UCS":
-        solution_path = ucs_solve(state, goal_state)
-    elif algo == "A*":
-        solution_path = a_star_solve(state, goal_state)
-    elif algo == "Greedy":
-        solution_path = greedy_solve(state, goal_state)
+    current_state_tuple = state_to_tuple(state)
+    if current_state_tuple not in state_ids:
+        state_ids[current_state_tuple] = len(state_ids) + 1
+    id_ = state_ids[current_state_tuple]
 
-    if solution_path:
-        print(f"Tìm thấy giải pháp với {len(solution_path)} bước bằng {algo}")
+    if algo == "BFS":
+        result = bfs_solve(state, goal_state)
+    elif algo == "DFS":
+        result = dfs_solve(state, goal_state)
+    elif algo == "UCS":
+        result = ucs_solve(state, goal_state)
+    elif algo == "A*":
+        result = a_star_solve(state, goal_state)
+    elif algo == "Greedy":
+        result = greedy_solve(state, goal_state)
+
+    if result[0] is not None:
+        solution_path = result[0]
+        nodes, t, mem = result[1], result[2], result[3]
+        steps = len(solution_path)
+        info = {
+            'id': id_,
+            'algo': algo,
+            'nodes': nodes,
+            'steps': steps,
+            'time': t,
+            'memory': mem
+        }
+        results.append(info)
+        print(f"ID {id_} - {algo}: Nodes: {nodes}, Steps: {steps}, Time: {t:.4f}s, Memory: {mem} bytes (estimate)")
     else:
         print(f"Không tìm thấy giải pháp bằng {algo}")
         solving = False
@@ -685,3 +741,4 @@ while running:
                             break
 pygame.quit()
 sys.exit()
+
