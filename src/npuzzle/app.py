@@ -61,6 +61,14 @@ class App:
 
     def handle_click(self, pos) -> None:
         panel, session = self.panel, self.session
+        if panel.menu_open:
+            panel.menu_open = False
+            for name, rect in panel.menu_options.items():
+                if rect.collidepoint(pos):
+                    session.algorithm = name
+                    return
+            if panel.buttons["algorithm"].collidepoint(pos):
+                return
         if panel.buttons["shuffle"].collidepoint(pos) and not session.solving:
             session.shuffle()
         elif panel.buttons["choose"].collidepoint(pos):
@@ -69,19 +77,13 @@ class App:
             session.reset()
         elif self.image and panel.trash_rect.collidepoint(pos):
             self.image = None
-        elif panel.buttons["algorithm"].collidepoint(pos):
-            panel.menu_open = not panel.menu_open
+        elif panel.buttons["algorithm"].collidepoint(pos) and not session.solving:
+            panel.menu_open = True
         elif panel.buttons["solve"].collidepoint(pos):
             if session.solving:
                 session.cancel_solving()
             else:
                 session.start_solving()
-        elif panel.menu_open:
-            for name, rect in panel.menu_options.items():
-                if rect.collidepoint(pos):
-                    session.algorithm = name
-                    panel.menu_open = False
-                    break
 
     def handle_event(self, event) -> None:
         if event.type == pygame.QUIT:
