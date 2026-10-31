@@ -37,6 +37,7 @@ class ControlPanel:
             for index, name in enumerate(names)
         }
         top = theme.BOARD_HEIGHT + 10
+        self.skip_rect = pygame.Rect(10, top, BUTTON_WIDTH, BUTTON_HEIGHT)
         reset_x = theme.SCREEN_WIDTH - ICON_BUTTON_SIZE - 10
         self.reset_rect = pygame.Rect(reset_x, top, ICON_BUTTON_SIZE, ICON_BUTTON_SIZE)
         trash_x = reset_x - ICON_BUTTON_SIZE - 5
@@ -126,6 +127,10 @@ class ControlPanel:
         if using_image:
             self._draw_icon_button(
                 screen, self.trash_rect, self.trash_icon, theme.TRASH_COLOR, theme.TRASH_HOVER
+            )
+        if session.solving and session.solution:
+            self._draw_button(
+                screen, self.skip_rect, "Skip", theme.BUTTON_COLOR, theme.BUTTON_HOVER
             )
         if session.won:
             self._draw_centered(screen, self.fonts.heading, "YOU WIN!", theme.GREEN, top + 120)

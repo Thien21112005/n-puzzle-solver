@@ -94,6 +94,13 @@ class GameSession:
         self.no_solution = False
         self.solution = []
 
+    def skip_to_end(self) -> None:
+        """Jump over the remaining playback, which can take hours with DFS."""
+        for direction in self.solution:
+            self.move(direction)
+        self.solution = []
+        self.solving = False
+
     def _finish_search(self) -> None:
         job, self._job = self._job, None
         result = job.result

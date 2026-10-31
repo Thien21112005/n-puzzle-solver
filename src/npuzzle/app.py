@@ -79,6 +79,8 @@ class App:
             self.image = None
         elif panel.buttons["algorithm"].collidepoint(pos) and not session.solving:
             panel.menu_open = True
+        elif panel.skip_rect.collidepoint(pos) and session.solution:
+            session.skip_to_end()
         elif panel.buttons["solve"].collidepoint(pos):
             if session.solving:
                 session.cancel_solving()

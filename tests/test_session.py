@@ -115,6 +115,20 @@ def test_shuffle_during_playback_drops_the_old_solution():
     assert session.state == board
 
 
+def test_skip_to_end_lands_on_the_goal_and_counts_the_moves():
+    session = session_at(random_state(3))
+    session.algorithm = "DFS"
+    session.start_solving()
+    wait_for_search(session)
+    steps = len(session.solution)
+    session.skip_to_end()
+    session.update(0)
+    assert session.state == GOAL
+    assert session.moves == steps
+    assert session.won
+    assert not session.solving
+
+
 def test_unsolvable_board_reports_no_solution():
     session = session_at(UNSOLVABLE)
     session.start_solving()
