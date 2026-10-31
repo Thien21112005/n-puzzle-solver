@@ -48,6 +48,7 @@ class GameSession:
         self.solving = False
         self.no_solution = False
         self.solved_by: str | None = None
+        self._solve_start: State | None = None
         self.solution: list[str] = []
         self._job: _SearchJob | None = None
         self._last_step_ms = 0
@@ -85,8 +86,14 @@ class GameSession:
 
     def start_solving(self) -> None:
         """Start searching for a solution; update() begins the playback when it is found."""
-        if self.solving or self.won:
+        if self.solving or (self.won and not self.solved_by):
             return
+        if self.won:
+            # A solver finished this board: run the next algorithm on the same one.
+            self.state = self._solve_start
+            self.won = False
+        self._solve_start = self.state
+        self.solved_by = None
         self.moves = 0
         self.no_solution = False
         self.solving = True
@@ -97,6 +104,10 @@ class GameSession:
         if self._job is not None:
             self._job.cancel()
             self._job = None
+        if self.solution:
+            # Stopping a playback returns to the board the results belong to.
+            self.state = self._solve_start
+            self.moves = 0
         self.solving = False
         self.no_solution = False
         self.solved_by = None

@@ -15,12 +15,12 @@ HEADER_HEIGHT = 32
 RADIO_RADIUS = 7
 # Right edge of each column measured from the table's left, and how each one is read and shown.
 COLUMNS = (
-    ("col_nodes", 200, lambda r: r.nodes, lambda r, lang: format_count(r.nodes, lang)),
+    ("col_nodes", 196, lambda r: r.nodes, lambda r, lang: format_count(r.nodes, lang)),
     ("col_steps", 272, lambda r: r.steps, lambda r, lang: format_count(r.steps, lang)),
-    ("col_time", 372, lambda r: r.seconds, lambda r, lang: format_seconds(r.seconds, lang)),
+    ("col_time", 364, lambda r: r.seconds, lambda r, lang: format_seconds(r.seconds, lang)),
     (
         "col_memory",
-        524,
+        512,
         lambda r: r.memory_estimate,
         lambda r, lang: format_bytes(r.memory_estimate, lang),
     ),
@@ -50,7 +50,7 @@ class SidePanel:
         h = theme.CONTROL_HEIGHT
         self.solve = Button("solve", pygame.Rect(left, y, 196, h), style="primary")
         self.skip = Button("skip", pygame.Rect(left + 204, y, 96, h), style="quiet")
-        self.shuffle = Button("shuffle", pygame.Rect(left + 308, y, 104, h))
+        self.shuffle = Button("shuffle", pygame.Rect(left + 308, y, 104, h), style="quiet")
         self.reset = Button("reset", pygame.Rect(left + 420, y, 104, h), style="quiet")
 
         self.picture_y = y + h + 40
@@ -68,7 +68,7 @@ class SidePanel:
             t("cancel") if session.solving else t("solve_with", algorithm=session.algorithm)
         )
         self.solve.style = "quiet" if session.solving else "primary"
-        self.solve.enabled = session.solving or not session.won
+        self.solve.enabled = session.solving or not session.won or bool(session.solved_by)
         self.skip.label = t("skip")
         self.skip.enabled = bool(session.solution)
         self.shuffle.label = t("shuffle")
@@ -83,6 +83,12 @@ class SidePanel:
             if button.hit(pos):
                 return button.action
         return None
+
+    def focus_targets(self, session: GameSession) -> list[pygame.Rect]:
+        """Return the controls reachable with Tab, in reading order."""
+        rows = [] if session.solving else list(self.rows.values())
+        buttons = [b.rect for b in self.buttons if b.visible and b.enabled]
+        return rows + buttons + list(self.language.parts.values())
 
     def algorithm_at(self, pos) -> str | None:
         for name, row in self.rows.items():
@@ -100,37 +106,40 @@ class SidePanel:
             draw.text(
                 screen, fonts.strong, t(key), theme.INK, midright=(self.table_x + right, header_y)
             )
+        records = session.comparison()
+        best = {}
+        if len(records) > 1:
+            best = {key: min(read(r) for r in records.values()) for key, _, read, _ in COLUMNS}
+        for name, row in self.rows.items():
+            self._draw_row(screen, session, name, row, records.get(name), best, mouse)
         rule_y = self.table_top + HEADER_HEIGHT - 1
         x_end = self.table_x + self.inner_width
         pygame.draw.line(screen, theme.COBALT, (self.table_x, rule_y), (x_end, rule_y), 2)
 
-        records = session.comparison()
-        best = {}
-        if records:
-            best = {key: min(read(r) for r in records.values()) for key, _, read, _ in COLUMNS}
-        for name, row in self.rows.items():
-            self._draw_row(screen, session, name, row, records.get(name), best, mouse)
-
     def _draw_row(self, screen, session, name, row, record: RunRecord | None, best, mouse) -> None:
         fonts = self.fonts
         selected = name == session.algorithm
+        background = theme.ENAMEL
         if selected:
-            screen.blit(draw.rounded(row.size, 6, theme.SELECTED), row)
+            background = theme.SELECTED
         elif row.collidepoint(mouse) and not session.solving:
-            screen.blit(draw.rounded(row.size, 6, theme.HOVER), row)
+            background = theme.HOVER
+        if background != theme.ENAMEL:
+            screen.blit(draw.rounded(row.size, 6, background), row)
         radio = (row.x + 16, row.centery)
-        pygame.draw.circle(screen, theme.COBALT, radio, RADIO_RADIUS, 2)
+        draw.dot(screen, radio, RADIO_RADIUS, theme.COBALT)
+        draw.dot(screen, radio, RADIO_RADIUS - 2, background)
         if selected:
-            pygame.draw.circle(screen, theme.COBALT, radio, RADIO_RADIUS - 4)
+            draw.dot(screen, radio, RADIO_RADIUS - 4, theme.COBALT)
         draw.text(screen, fonts.strong, name, theme.INK, midleft=(row.x + 32, row.centery))
         pygame.draw.line(screen, theme.RULE, (row.x, row.bottom - 1), (row.right, row.bottom - 1))
         for key, right, read, show in COLUMNS:
             x = self.table_x + right
             if record is None:
-                draw.tabular_text(screen, fonts.body, "—", theme.INK_SOFT, x, row.centery)
+                draw.tabular_text(screen, fonts.data, "—", theme.INK_SOFT, x, row.centery)
                 continue
-            is_best = read(record) == best[key]
-            font = fonts.strong if is_best else fonts.body
+            is_best = key in best and read(record) == best[key]
+            font = fonts.data_best if is_best else fonts.data
             color = theme.SHUTTER if is_best else theme.INK
             draw.tabular_text(screen, font, show(record, self.t.language), color, x, row.centery)
 
@@ -141,19 +150,19 @@ class SidePanel:
         if session.searching:
             return t("searching", algorithm=session.algorithm), theme.COBALT
         if session.solving:
-            count = format_count(len(session.solution), t.language)
+            count = t.moves(len(session.solution))
             return t("playing", algorithm=session.algorithm, count=count), theme.COBALT
         if session.no_solution:
             return t("no_solution", algorithm=session.algorithm), theme.ERROR
         if session.won:
-            count = format_count(session.moves, t.language)
+            count = t.moves(session.moves)
             if session.solved_by:
                 return t("solved", algorithm=session.solved_by, count=count), theme.SHUTTER
             return t("won", count=count), theme.SHUTTER
         return t("hint"), theme.INK_SOFT
 
     def _draw_number_preview(self, screen, frame: pygame.Rect) -> None:
-        """Show a tiny numbered board, standing in for the picture while none is loaded."""
+        """Show the finished board, which is the goal while no picture is loaded."""
         screen.blit(draw.rounded(frame.size, theme.CONTROL_RADIUS, theme.ENAMEL_SHADE), frame)
         cell, gap = 24, 4
         start_x = frame.x + (frame.width - 3 * cell - 2 * gap) // 2
@@ -161,7 +170,12 @@ class SidePanel:
         plate = draw.rounded((cell, cell), 4, theme.COBALT)
         for index in range(8):
             row, col = divmod(index, 3)
-            screen.blit(plate, (start_x + col * (cell + gap), start_y + row * (cell + gap)))
+            position = pygame.Rect(
+                start_x + col * (cell + gap), start_y + row * (cell + gap), cell, cell
+            )
+            screen.blit(plate, position)
+            number = str(index + 1)
+            draw.text(screen, self.fonts.small_bold, number, theme.ENAMEL, center=position.center)
 
     def _draw_picture(self, screen, image: ImageTiles | None) -> None:
         fonts, t = self.fonts, self.t

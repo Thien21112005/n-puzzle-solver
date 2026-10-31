@@ -145,6 +145,43 @@ def test_comparison_keeps_latest_run_per_algorithm_until_shuffle():
     assert session.comparison() == {}
 
 
+def test_solving_again_after_a_solver_win_reuses_the_same_board():
+    session = session_at(ONE_MOVE_AWAY)
+    session.start_solving()
+    wait_for_search(session)
+    session.skip_to_end()
+    session.update(0)
+    assert session.won
+
+    session.algorithm = "A*"
+    session.start_solving()
+    assert session.state == ONE_MOVE_AWAY
+    assert not session.won
+    wait_for_search(session)
+    assert set(session.comparison()) == {"BFS", "A*"}
+
+
+def test_player_win_does_not_allow_solving_again():
+    session = session_at(ONE_MOVE_AWAY)
+    session.move("up")
+    session.update(0)
+    session.start_solving()
+    assert not session.solving
+    assert session.state == GOAL
+
+
+def test_cancelling_playback_restores_the_compared_board():
+    session = session_at(apply_move(ONE_MOVE_AWAY, "right"))
+    start = session.state
+    session.start_solving()
+    wait_for_search(session)
+    session.update(1000)
+    assert session.state != start
+    session.cancel_solving()
+    assert session.state == start
+    assert session.moves == 0
+
+
 def test_unsolvable_board_reports_no_solution():
     session = session_at(UNSOLVABLE)
     session.start_solving()

@@ -19,6 +19,7 @@ ARROW_MOVES = {
     pygame.K_LEFT: "left",
     pygame.K_RIGHT: "right",
 }
+ACTIVATE_KEYS = (pygame.K_RETURN, pygame.K_KP_ENTER, pygame.K_SPACE)
 LEFT_COLUMN = theme.MARGIN
 BOARD_TOP = 92
 PANEL_LEFT = 496
@@ -46,18 +47,21 @@ class App:
         self.running = True
         self._caption = None
         self._cursor = None
+        self.focus: pygame.Rect | None = None
 
     def render(self, now_ms: int | None = None) -> None:
         now = pygame.time.get_ticks() if now_ms is None else now_ms
         session = self.session
         self.board.sync(session.state, session.won, now)
-        self.screen.fill(theme.WALL)
+        self.screen.blit(draw.limewash(theme.WINDOW_SIZE, theme.WALL), (0, 0))
         title_pos = (LEFT_COLUMN, theme.MARGIN - 8)
         draw.text(self.screen, self.fonts.title, self.t("title"), theme.COBALT, topleft=title_pos)
-        self.board.draw(self.screen, session.state, self.image, now)
-        self._draw_move_count()
         mouse = pygame.mouse.get_pos()
+        self.board.draw(self.screen, session.state, self.image, now, self._movable_cell(mouse))
+        self._draw_move_count()
         self.panel.draw(self.screen, session, self.image, self.notice, mouse)
+        if self.focus in self.panel.focus_targets(session):
+            draw.focus_ring(self.screen, self.focus, theme.CONTROL_RADIUS, theme.INK)
 
     def _draw_move_count(self) -> None:
         center_y = theme.WINDOW_SIZE[1] - theme.MARGIN - 32
@@ -113,15 +117,33 @@ class App:
         elif action == "remove":
             self.image = None
 
-    def _slide_cell(self, index: int) -> None:
-        """Move the clicked plate if it is next to the blank."""
+    def _direction_of_cell(self, index: int) -> str | None:
+        """Return the move that slides a plate into the blank, if there is one."""
         session = self.session
-        if session.solving or session.state[index] == BLANK:
-            return
+        if session.solving or session.won or session.state[index] == BLANK:
+            return None
         for direction, next_state in neighbors(session.state):
             if next_state[index] == BLANK:
-                session.move(direction)
-                return
+                return direction
+        return None
+
+    def _movable_cell(self, pos) -> int | None:
+        cell = self.board.cell_at(pos)
+        if cell is not None and self._direction_of_cell(cell):
+            return cell
+        return None
+
+    def _slide_cell(self, index: int) -> None:
+        direction = self._direction_of_cell(index)
+        if direction:
+            self.session.move(direction)
+
+    def _move_focus(self, step: int) -> None:
+        targets = self.panel.focus_targets(self.session)
+        if self.focus in targets:
+            self.focus = targets[(targets.index(self.focus) + step) % len(targets)]
+        else:
+            self.focus = targets[0 if step > 0 else -1]
 
     def handle_click(self, pos) -> None:
         self.notice = None
@@ -141,12 +163,21 @@ class App:
     def handle_event(self, event) -> None:
         if event.type == pygame.QUIT:
             self.running = False
-        elif event.type == pygame.KEYDOWN and not self.session.solving:
-            if event.key in ARROW_MOVES:
-                self.notice = None
-                self.session.move(ARROW_MOVES[event.key])
+        elif event.type == pygame.KEYDOWN:
+            self._handle_key(event)
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            self.focus = None
             self.handle_click(event.pos)
+
+    def _handle_key(self, event) -> None:
+        if event.key == pygame.K_TAB:
+            self._move_focus(-1 if event.mod & pygame.KMOD_SHIFT else 1)
+        elif event.key in ACTIVATE_KEYS:
+            if self.focus in self.panel.focus_targets(self.session):
+                self.handle_click(self.focus.center)
+        elif event.key in ARROW_MOVES and not self.session.solving:
+            self.notice = None
+            self.session.move(ARROW_MOVES[event.key])
 
     def _update_window(self) -> None:
         player_won = self.session.won and not self.session.solved_by
@@ -160,6 +191,7 @@ class App:
             panel.action_at(mouse)
             or panel.language.hit(mouse)
             or (panel.algorithm_at(mouse) and not self.session.solving)
+            or self._movable_cell(mouse) is not None
         )
         cursor = pygame.SYSTEM_CURSOR_HAND if clickable else pygame.SYSTEM_CURSOR_ARROW
         if cursor != self._cursor:

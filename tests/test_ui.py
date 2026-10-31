@@ -6,6 +6,7 @@ from npuzzle.core.board import apply_move, goal_state
 from npuzzle.core.solvers import ALGORITHMS
 from npuzzle.i18n import STRINGS, Translator, format_bytes, format_count, format_seconds
 from npuzzle.settings import Settings
+from npuzzle.ui.panels import COLUMNS
 
 ONE_MOVE_AWAY = apply_move(goal_state(3), "down")
 
@@ -82,11 +83,34 @@ def test_labels_fit_their_controls(app, language):
         for text in texts:
             assert fonts.strong.size(text)[0] <= button.rect.width - 16, text
     for key in ("hint", "image_error", "playing", "searching", "won", "solved", "no_solution"):
-        text = STRINGS[language][key].format(algorithm=longest_algorithm, count="55.000")
+        text = STRINGS[language][key].format(algorithm=longest_algorithm, count=t.moves(55000))
         assert fonts.strong.size(text)[0] <= panel.status_rect.width, text
     assert fonts.small.size(t("table_note"))[0] <= panel.inner_width
     assert fonts.small.size(t("table_empty"))[0] <= panel.inner_width
     assert fonts.small.size(t("picture_hint"))[0] <= panel.language.rect.x - panel.choose.rect.x - 8
+
+
+@pytest.mark.parametrize("language", STRINGS)
+def test_table_headers_do_not_touch(app, language):
+    t = Translator(language)
+    previous_right = None
+    for key, right, _, _ in COLUMNS:
+        left = app.panel.table_x + right - app.fonts.strong.size(t(key))[0]
+        if previous_right is not None:
+            assert left - previous_right >= 16, key
+        previous_right = app.panel.table_x + right
+
+
+def test_tab_and_enter_operate_the_controls(app):
+    app.handle_event(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_TAB, mod=0))
+    assert app.focus == app.panel.rows["BFS"]
+    app.handle_event(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_TAB, mod=0))
+    assert app.focus == app.panel.rows["DFS"]
+    app.handle_event(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_RETURN, mod=0))
+    assert app.session.algorithm == "DFS"
+    app.handle_event(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_TAB, mod=pygame.KMOD_SHIFT))
+    assert app.focus == app.panel.rows["BFS"]
+    app.render()
 
 
 def test_number_formats_follow_the_language():

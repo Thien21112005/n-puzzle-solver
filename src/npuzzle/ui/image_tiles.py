@@ -24,15 +24,17 @@ class ImageTiles:
         whole = pitch * cols - theme.PLATE_GAP
         scaled = pygame.transform.smoothscale(picture, (whole, whole))
         # Plates are prepared once, because rounding them on every frame is expensive.
+        rim = theme.PLATE_RIM
+        inner = side - 2 * rim
         self.plates = []
         for row in range(rows):
             for col in range(cols):
-                tile = pygame.Surface((side, side), pygame.SRCALPHA)
-                tile.blit(scaled, (0, 0), (col * pitch, row * pitch, side, side))
-                self.plates.append(draw.clip_rounded(tile, theme.PLATE_RADIUS))
+                tile = pygame.Surface((inner, inner), pygame.SRCALPHA)
+                tile.blit(scaled, (0, 0), (col * pitch + rim, row * pitch + rim, inner, inner))
+                self.plates.append(draw.clip_rounded(tile, theme.PLATE_RADIUS - rim))
         reference = pygame.transform.smoothscale(picture, (REFERENCE_SIZE, REFERENCE_SIZE))
         self.reference = draw.clip_rounded(reference, theme.CONTROL_RADIUS)
 
     def plate_for(self, value: int) -> pygame.Surface:
-        """Return the plate of a value; 0 is the last cell, shown once the board is won."""
+        """Return the picture inside a plate's rim, by tile value."""
         return self.plates[value - 1]

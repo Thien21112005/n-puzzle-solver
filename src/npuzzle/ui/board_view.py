@@ -6,7 +6,7 @@ from npuzzle.core.board import BLANK, State
 from npuzzle.ui import draw, theme
 from npuzzle.ui.image_tiles import ImageTiles
 
-SCREW_RADIUS = 3
+SCREW_RADIUS = 4
 SCREW_INSET = 16
 
 
@@ -15,8 +15,8 @@ def _plate_surface(fill, fonts: theme.Fonts, value: int) -> pygame.Surface:
     plate = draw.rounded(
         (side, side), theme.PLATE_RADIUS, fill, theme.ENAMEL, theme.PLATE_RIM
     ).copy()
-    for y in (SCREW_INSET, side - SCREW_INSET - 1):
-        pygame.draw.circle(plate, theme.ENAMEL, (side // 2, y), SCREW_RADIUS)
+    for y in (SCREW_INSET, side - SCREW_INSET):
+        draw.dot(plate, (side // 2, y), SCREW_RADIUS, theme.ENAMEL)
     numeral = fonts.plate.render(str(value), True, theme.ENAMEL)
     plate.blit(numeral, numeral.get_rect(center=(side // 2, side // 2 - 2)))
     return plate
@@ -89,10 +89,24 @@ class BoardView:
             self._plates[key] = _plate_surface(fill, self.fonts, value)
         return self._plates[key]
 
-    def draw(self, screen, state: State, image: ImageTiles | None, now_ms: int) -> None:
-        recess = draw.rounded((theme.PLATE, theme.PLATE), theme.PLATE_RADIUS, theme.WALL_SHADE)
+    def _picture_plate(self, image: ImageTiles, value: int, ripple: float) -> pygame.Surface:
+        rim = draw.lerp_color(theme.ENAMEL, theme.SHUTTER, ripple)
+        side = theme.PLATE
+        plate = draw.rounded((side, side), theme.PLATE_RADIUS, rim).copy()
+        plate.blit(image.plate_for(value), (theme.PLATE_RIM, theme.PLATE_RIM))
+        return plate
+
+    def _draw_recess(self, screen, index: int) -> None:
+        """Draw an empty cell as a hole in the wall, darker along its top edge."""
+        x, y = self.cell_position(index)
+        side = theme.PLATE
+        screen.blit(draw.rounded((side, side), theme.PLATE_RADIUS, theme.WALL_DEEP), (x, y))
+        floor = draw.rounded((side, side - 5), theme.PLATE_RADIUS, theme.WALL_SHADE)
+        screen.blit(floor, (x, y + 5))
+
+    def draw(self, screen, state: State, image, now_ms: int, hovered: int | None = None) -> None:
         for index in range(len(state)):
-            screen.blit(recess, self.cell_position(index))
+            self._draw_recess(screen, index)
 
         shadow = draw.soft_shadow((theme.PLATE, theme.PLATE), theme.PLATE_RADIUS, 110)
         for index, value in enumerate(state):
@@ -100,9 +114,16 @@ class BoardView:
             if value == BLANK and not (self._won_at is not None and image):
                 continue
             x, y = self._plate_position(index, value, now_ms)
-            screen.blit(shadow, (x - 8, y - 5))
+            if index == hovered:
+                y -= theme.HOVER_LIFT
+            ripple = self._ripple(index, now_ms)
             if image:
-                plate = image.plate_for(value or len(state))
+                plate = self._picture_plate(image, value or len(state), ripple)
             else:
-                plate = self._numbered_plate(value, self._ripple(index, now_ms))
+                plate = self._numbered_plate(value, ripple)
+            if value == BLANK and ripple < 1:
+                # The last piece of a won picture fades into its gap.
+                plate.set_alpha(round(255 * ripple))
+            else:
+                screen.blit(shadow, (x - 8, y - 5))
             screen.blit(plate, (x, y))
