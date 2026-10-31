@@ -1,0 +1,497 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-31T12:41:06+00:00",
+  "title": "Design System: N-Puzzle",
+  "extensions": {
+    "colorMeta": {
+      "cobalt": {
+        "role": "primary",
+        "displayName": "Cobalt Enamel",
+        "canonical": "#123c9c",
+        "tonalRamp": [
+          "#00052d",
+          "#001769",
+          "#0d3797",
+          "#2d5abc",
+          "#4c7de3",
+          "#75a3ff",
+          "#aecaff",
+          "#e6efff"
+        ]
+      },
+      "cobalt-deep": {
+        "role": "primary",
+        "displayName": "Deep Cobalt",
+        "canonical": "#0c2c76",
+        "tonalRamp": [
+          "#010826",
+          "#041d5c",
+          "#1a3c87",
+          "#385dab",
+          "#5880d1",
+          "#7ca4f2",
+          "#b1caf9",
+          "#e7effe"
+        ]
+      },
+      "shutter": {
+        "role": "secondary",
+        "displayName": "Shutter Green",
+        "canonical": "#2f6b4f",
+        "tonalRamp": [
+          "#001006",
+          "#002e1b",
+          "#0c4e34",
+          "#336f53",
+          "#559173",
+          "#7cb496",
+          "#b2d2c0",
+          "#e7f1ec"
+        ]
+      },
+      "shutter-deep": {
+        "role": "secondary",
+        "displayName": "Deep Shutter",
+        "canonical": "#24543e",
+        "tonalRamp": [
+          "#000f07",
+          "#012d1c",
+          "#1c4d37",
+          "#3d6d56",
+          "#5e8f76",
+          "#83b199",
+          "#b6d1c2",
+          "#e8f1ec"
+        ]
+      },
+      "wall": {
+        "role": "tertiary",
+        "displayName": "Limewash Ochre",
+        "canonical": "#e3a82b",
+        "tonalRamp": [
+          "#130900",
+          "#332200",
+          "#573d00",
+          "#7e5a03",
+          "#a87902",
+          "#d19b2a",
+          "#e4c48d",
+          "#f7eddd"
+        ]
+      },
+      "wall-shade": {
+        "role": "tertiary",
+        "displayName": "Recess Floor",
+        "canonical": "#c48e1c",
+        "tonalRamp": [
+          "#130900",
+          "#332100",
+          "#583c01",
+          "#7f5900",
+          "#aa7800",
+          "#ce9b3d",
+          "#e3c493",
+          "#f7edde"
+        ]
+      },
+      "wall-deep": {
+        "role": "tertiary",
+        "displayName": "Recess Edge",
+        "canonical": "#a67614",
+        "tonalRamp": [
+          "#130900",
+          "#342100",
+          "#583c00",
+          "#805900",
+          "#a87818",
+          "#ca9c4e",
+          "#e1c59a",
+          "#f6ede0"
+        ]
+      },
+      "enamel": {
+        "role": "neutral",
+        "displayName": "White Enamel",
+        "canonical": "#f6f5ee",
+        "tonalRamp": [
+          "#0c0b09",
+          "#262521",
+          "#43423d",
+          "#62615b",
+          "#83827c",
+          "#a6a59f",
+          "#cac9c5",
+          "#efeeed"
+        ]
+      },
+      "enamel-shade": {
+        "role": "neutral",
+        "displayName": "Enamel Shade",
+        "canonical": "#e8e6dc",
+        "tonalRamp": [
+          "#0c0b08",
+          "#27251f",
+          "#44423a",
+          "#636159",
+          "#848279",
+          "#a7a59c",
+          "#cac9c4",
+          "#efeeed"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#1a1a1a",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#a5a5a5",
+          "#c9c9c9",
+          "#eeeeee"
+        ]
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Soft Ink",
+        "canonical": "#48484c",
+        "tonalRamp": [
+          "#0b0b0c",
+          "#252528",
+          "#414145",
+          "#616165",
+          "#828286",
+          "#a4a4a9",
+          "#c9c9cb",
+          "#eeeeef"
+        ]
+      },
+      "error": {
+        "role": "neutral",
+        "displayName": "Brick Error",
+        "canonical": "#a02c18",
+        "tonalRamp": [
+          "#200000",
+          "#4b0400",
+          "#7d1100",
+          "#a7331f",
+          "#ce5842",
+          "#f18069",
+          "#fcb5a6",
+          "#fee9e5"
+        ]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Table Rule",
+        "canonical": "#c4c9d6",
+        "tonalRamp": [
+          "#090b0f",
+          "#22252d",
+          "#3e424c",
+          "#5d616c",
+          "#7e828e",
+          "#a0a5b0",
+          "#c6c9d0",
+          "#edeef1"
+        ]
+      },
+      "selected": {
+        "role": "neutral",
+        "displayName": "Selected Tint",
+        "canonical": "#dee5f5",
+        "tonalRamp": [
+          "#090b10",
+          "#21252f",
+          "#3c424f",
+          "#5b616f",
+          "#7c8291",
+          "#9fa5b3",
+          "#c5c9d2",
+          "#edeef1"
+        ]
+      },
+      "hover": {
+        "role": "neutral",
+        "displayName": "Hover Tint",
+        "canonical": "#ecece8",
+        "tonalRamp": [
+          "#0b0b0a",
+          "#252523",
+          "#42423f",
+          "#61615e",
+          "#82827f",
+          "#a5a5a2",
+          "#c9c9c7",
+          "#eeeeee"
+        ]
+      },
+      "disabled-fill": {
+        "role": "neutral",
+        "displayName": "Disabled Fill",
+        "canonical": "#dedcd2",
+        "tonalRamp": [
+          "#0c0b08",
+          "#27251f",
+          "#44423a",
+          "#636159",
+          "#848279",
+          "#a7a59c",
+          "#cac9c4",
+          "#efeeed"
+        ]
+      },
+      "disabled-text": {
+        "role": "neutral",
+        "displayName": "Disabled Text",
+        "canonical": "#5c5a54",
+        "tonalRamp": [
+          "#0c0b09",
+          "#262520",
+          "#44423c",
+          "#63615b",
+          "#84827c",
+          "#a7a59f",
+          "#cac9c5",
+          "#efeeed"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "plate": {
+        "displayName": "Plate numeral",
+        "purpose": "Numbers on board plates."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "The product name on the wall; the only use of ExtraBold."
+      },
+      "count": {
+        "displayName": "Count",
+        "purpose": "The figure in the move-count plate."
+      },
+      "heading": {
+        "displayName": "Heading",
+        "purpose": "The panel heading and the Moves label."
+      },
+      "data": {
+        "displayName": "Data",
+        "purpose": "Regular table figures, drawn with equal-width digits."
+      },
+      "data-best": {
+        "displayName": "Data best",
+        "purpose": "Best table figures, in shutter green with natural digits."
+      },
+      "strong": {
+        "displayName": "Strong",
+        "purpose": "Headers, algorithm names, control labels and the status line."
+      },
+      "small": {
+        "displayName": "Small",
+        "purpose": "The note under the table and the thumbnail caption."
+      },
+      "small-bold": {
+        "displayName": "Small bold",
+        "purpose": "Numerals on the finished-board thumbnail."
+      }
+    },
+    "shadows": [
+      {
+        "name": "plate",
+        "value": "0 3px 8px rgba(70, 45, 5, 0.43)",
+        "purpose": "Every board plate; a CSS approximation of a shape blurred by 6x scaling at alpha 110."
+      },
+      {
+        "name": "panel",
+        "value": "0 4px 8px rgba(70, 45, 5, 0.27)",
+        "purpose": "The white enamel panel; the same method at alpha 70."
+      },
+      {
+        "name": "recess-edge",
+        "value": "inset 0 5px 0 #a67614",
+        "purpose": "The empty cell's hard top edge; drawn in code as two stacked shapes."
+      }
+    ],
+    "motion": [
+      {
+        "name": "plate-slide",
+        "value": "130ms, 1 - 2^(-10t)",
+        "purpose": "A moved plate travelling between cells."
+      },
+      {
+        "name": "plate-hover-lift",
+        "value": "3px upward, immediate",
+        "purpose": "A plate that can move, under the mouse."
+      },
+      {
+        "name": "ripple-step",
+        "value": "70ms per cell, reading order",
+        "purpose": "Delay between plates in the win ripple."
+      },
+      {
+        "name": "ripple-fade",
+        "value": "220ms, linear",
+        "purpose": "One plate turning from cobalt to shutter green."
+      },
+      {
+        "name": "playback-step",
+        "value": "200ms per move",
+        "purpose": "Solver playback cadence."
+      },
+      {
+        "name": "focus-ring",
+        "value": "2px #1a1a1a, 1px gap, 11px outer corner",
+        "purpose": "Keyboard focus on table rows, buttons and language segments."
+      }
+    ],
+    "breakpoints": []
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The green solve action; the only primary button.",
+      "html": "<button class=\"ds-btn-primary\">Solve with A*</button>",
+      "css": ".ds-btn-primary { font-family: 'Be Vietnam Pro', sans-serif; font-size: 15px; font-weight: 700; height: 44px; padding: 0 8px; border-radius: 8px; cursor: pointer; width: 196px; background: #2f6b4f; color: #f6f5ee; border: none; } .ds-btn-primary:hover { background: #24543e; } .ds-btn-primary:focus-visible { outline: 2px solid #1a1a1a; outline-offset: 1px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Cobalt fill used only for Shuffle after a win by hand.",
+      "html": "<button class=\"ds-btn-secondary\">Shuffle</button>",
+      "css": ".ds-btn-secondary { font-family: 'Be Vietnam Pro', sans-serif; font-size: 15px; font-weight: 700; height: 44px; padding: 0 8px; border-radius: 8px; cursor: pointer; width: 196px; background: #123c9c; color: #f6f5ee; border: none; } .ds-btn-secondary:hover { background: #0c2c76; } .ds-btn-secondary:focus-visible { outline: 2px solid #1a1a1a; outline-offset: 1px; }"
+    },
+    {
+      "name": "Quiet Button",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "The resting style of every other action, and of Solve while it reads Cancel.",
+      "html": "<button class=\"ds-btn-quiet\">Reset</button>",
+      "css": ".ds-btn-quiet { font-family: 'Be Vietnam Pro', sans-serif; font-size: 15px; font-weight: 700; height: 44px; padding: 0 8px; border-radius: 8px; cursor: pointer; width: 196px; background: #f6f5ee; color: #123c9c; border: 2px solid #123c9c; } .ds-btn-quiet:hover { background: #ecece8; } .ds-btn-quiet:focus-visible { outline: 2px solid #1a1a1a; outline-offset: 1px; }"
+    },
+    {
+      "name": "Disabled Button",
+      "kind": "button",
+      "refersTo": "button-disabled",
+      "description": "Unavailable action, with no outline.",
+      "html": "<button class=\"ds-btn-disabled\" disabled>Skip</button>",
+      "css": ".ds-btn-disabled { font-family: 'Be Vietnam Pro', sans-serif; font-size: 15px; font-weight: 700; height: 44px; padding: 0 8px; border-radius: 8px; cursor: pointer; width: 96px; background: #dedcd2; color: #5c5a54; border: none; cursor: default; }"
+    },
+    {
+      "name": "Numbered Plate",
+      "kind": "custom",
+      "refersTo": "plate",
+      "description": "The signature enamel house-number plate; lifts 3px on hover when it can move.",
+      "html": "<button class=\"ds-plate\"><i class=\"ds-plate-screw ds-plate-screw-top\"></i>5<i class=\"ds-plate-screw ds-plate-screw-bottom\"></i></button>",
+      "css": ".ds-plate { font-family: 'Be Vietnam Pro', sans-serif; position: relative; width: 136px; height: 136px; background: #123c9c; color: #f6f5ee; border: 6px solid #f6f5ee; border-radius: 14px; font-size: 72px; font-weight: 700; box-shadow: 0 3px 8px rgba(70, 45, 5, 0.43); cursor: pointer; } .ds-plate-screw { position: absolute; left: 50%; width: 8px; height: 8px; margin-left: -4px; border-radius: 50%; background: #f6f5ee; } .ds-plate-screw-top { top: 6px; } .ds-plate-screw-bottom { bottom: 6px; } .ds-plate:hover { transform: translateY(-3px); } .ds-plate:focus-visible { outline: 2px solid #1a1a1a; outline-offset: 1px; }"
+    },
+    {
+      "name": "Plate Recess",
+      "kind": "custom",
+      "refersTo": "plate-recess",
+      "description": "The empty cell, cut into the wall with a dark top edge.",
+      "html": "<div class=\"ds-recess\" aria-hidden=\"true\"></div>",
+      "css": ".ds-recess { width: 136px; height: 136px; border-radius: 14px; background: #c48e1c; box-shadow: inset 0 5px 0 #a67614; }"
+    },
+    {
+      "name": "Move-Count Plate",
+      "kind": "custom",
+      "refersTo": "count-plate",
+      "description": "The smaller sign at the foot of the board, growing with the count.",
+      "html": "<div class=\"ds-count\">18,055</div>",
+      "css": ".ds-count { font-family: 'Be Vietnam Pro', sans-serif; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; min-width: 88px; height: 64px; padding: 0 18px; background: #123c9c; color: #f6f5ee; border: 4px solid #f6f5ee; border-radius: 10px; font-size: 30px; font-weight: 700; }"
+    },
+    {
+      "name": "Comparison Table Row",
+      "kind": "custom",
+      "refersTo": "table-row-selected",
+      "description": "A selectable algorithm row with a best value in plain bold green.",
+      "html": "<button class=\"ds-row\"><i class=\"ds-row-radio\"></i><b class=\"ds-row-name\">A*</b><span class=\"ds-row-value\">28,951</span><span class=\"ds-row-best\">31</span></button>",
+      "css": ".ds-row { font-family: 'Be Vietnam Pro', sans-serif; display: flex; align-items: center; width: 524px; height: 44px; padding: 0 12px 0 9px; background: #dee5f5; color: #1a1a1a; border: none; border-bottom: 1px solid #c4c9d6; border-radius: 6px; font-size: 17px; cursor: pointer; } .ds-row-radio { width: 14px; height: 14px; box-sizing: border-box; border: 2px solid #123c9c; border-radius: 50%; background: radial-gradient(circle, #123c9c 3px, transparent 3.5px); } .ds-row-name { margin-left: 9px; flex: 1; text-align: left; font-size: 15px; } .ds-row-value { font-variant-numeric: tabular-nums; } .ds-row-best { margin-left: 32px; color: #2f6b4f; font-weight: 700; } .ds-row:hover { background: #dee5f5; } .ds-row:focus-visible { outline: 2px solid #1a1a1a; outline-offset: 1px; }"
+    },
+    {
+      "name": "Language Switch",
+      "kind": "chip",
+      "refersTo": "segment-selected",
+      "description": "The two-way segmented control; the selected half is a filled cobalt tab.",
+      "html": "<div class=\"ds-segments\"><button class=\"ds-segment ds-segment-on\">Tiếng Việt</button><button class=\"ds-segment\">English</button></div>",
+      "css": ".ds-segments { display: inline-flex; box-sizing: border-box; width: 192px; height: 44px; background: #f6f5ee; border: 2px solid #123c9c; border-radius: 8px; } .ds-segment { font-family: 'Be Vietnam Pro', sans-serif; flex: 1; background: transparent; color: #123c9c; border: none; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; } .ds-segment:hover { background: #ecece8; } .ds-segment-on, .ds-segment-on:hover { background: #123c9c; color: #f6f5ee; } .ds-segment:focus-visible { outline: 2px solid #1a1a1a; outline-offset: 1px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The House-Number Wall",
+    "overview": "The window is a stretch of Hanoi street wall. Ochre limewash covers the whole ground, and the board is mounted on it as cobalt enamel house-number plates with white rims and two screw points. The white enamel panel beside it is a larger sign on the same wall, carrying the comparison table and every control. Nothing floats in a grey application frame: the wall is the interface.\n\nThe density is that of a game board beside a lab table. The left column is large and physical, with 72px numerals on 136px plates, while the right column is exact and tabular. The two share one material language, so measured results read as part of the same object as the puzzle.\n\nMotion belongs to the plates. They slide with an exponential ease-out, lift slightly when they can move, and on a win turn from cobalt to shutter green in reading order. Everything else changes state without animation.",
+    "keyCharacteristics": [
+      "Limewash ochre ground across the whole window, generated in code.",
+      "Cobalt enamel plates with a white rim and two screws.",
+      "A single white enamel panel holding table, status and controls.",
+      "Shutter green reserved for the primary action, best results and the win.",
+      "Be Vietnam Pro in three weights, bundled with the app.",
+      "A fixed 1100x680 window with no alternate layouts."
+    ],
+    "rules": [
+      {
+        "name": "The Green Is Earned Rule",
+        "body": "Shutter green means do this next, this is the best figure, or the board is solved. It has no decorative use.",
+        "section": "colors"
+      },
+      {
+        "name": "The Material Not Accent Rule",
+        "body": "Cobalt is the plate's enamel, set against ochre and white. It is never a small accent on a neutral grey interface.",
+        "section": "colors"
+      },
+      {
+        "name": "The Three Weights Rule",
+        "body": "Regular, Bold and ExtraBold are the only weights shipped. Hierarchy comes from size, color and these three files.",
+        "section": "typography"
+      },
+      {
+        "name": "The Equal Digits Rule",
+        "body": "Regular table figures are drawn digit by digit in cells as wide as the font's \"0\", and right-aligned, because pygame cannot enable tabular figures and the bundled font's digits are proportional. Best values stay plain bold text at the same right edge, because bold digits look split in equal-width cells and the weight and color already mark them.",
+        "section": "typography"
+      },
+      {
+        "name": "The Fixed Wall Rule",
+        "body": "The composition is one measured arrangement at one size. New content must fit this window in both languages rather than introduce scrolling, tabs or a second layout.",
+        "section": "layout"
+      },
+      {
+        "name": "The Warm Shadow Rule",
+        "body": "Shadows are tinted brown from the wall (#462d05), never neutral black, and only raised objects on the wall cast one.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Hole In The Wall Rule",
+        "body": "The empty cell is a recess, not a missing plate. The recess is drawn under every cell, so a sliding plate always passes over a hole.",
+        "section": "elevation"
+      },
+      {
+        "name": "The One Fill Rule",
+        "body": "The action row holds at most one filled button: green Solve while solving is on offer, cobalt Shuffle after a win by hand, and neither while a solve is running.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "Do paint the whole window with the generated limewash and mount every object on it.",
+      "Do use the 136px plate, 6px rim and 14px corner together when drawing a board plate.",
+      "Do keep the screws on numbered board plates and leave them off picture plates, where they would mark the picture.",
+      "Do draw regular table figures with equal-width digits and best values in plain bold shutter green.",
+      "Do keep hover lift, slide and ripple on board plates.",
+      "Do check new labels in Vietnamese and English at the fixed window size."
+    ],
+    "donts": [
+      "Don't replace the wall with a flat or grey application background.",
+      "Don't split the panel's contents into a grid of cards; it is one enamel sign with rules inside it.",
+      "Don't ship a raster for the wall; change the generator instead.",
+      "Don't set white enamel text directly on the ochre wall, where it reaches only about 1.9:1. Use ink or cobalt.",
+      "Don't add a weight or typeface beyond the three bundled Be Vietnam Pro files.",
+      "Don't give raised objects a hard-edged shadow; the hard edge belongs to the recess.",
+      "Don't fill two buttons in the action row at once."
+    ]
+  }
+}
