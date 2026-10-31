@@ -4,6 +4,7 @@ import pygame
 
 from npuzzle.core.session import GameSession
 from npuzzle.core.solvers import ALGORITHMS
+from npuzzle.paths import asset_path
 from npuzzle.ui import theme
 
 BUTTON_WIDTH = 80
@@ -13,15 +14,16 @@ ICON_BUTTON_SIZE = 35
 ICON_SIZE = 20
 
 
-def _load_icon(path: str) -> pygame.Surface:
-    return pygame.transform.smoothscale(pygame.image.load(path), (ICON_SIZE, ICON_SIZE))
+def _load_icon(name: str) -> pygame.Surface:
+    icon = pygame.image.load(asset_path("icons", name)).convert_alpha()
+    return pygame.transform.smoothscale(icon, (ICON_SIZE, ICON_SIZE))
 
 
 class ControlPanel:
     def __init__(self, fonts: theme.Fonts):
         self.fonts = fonts
         self.menu_open = False
-        self.trash_icon = _load_icon("bin.png")
+        self.trash_icon = _load_icon("trash.png")
         self.reset_icon = _load_icon("reset.png")
 
         y = theme.BOARD_HEIGHT + 80
