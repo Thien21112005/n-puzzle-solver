@@ -37,12 +37,14 @@ def draw_board(
             pygame.draw.rect(screen, theme.EMPTY_COLOR, rect, border_radius=theme.TILE_RADIUS)
 
 
-def draw_reference(screen: pygame.Surface, image: ImageTiles, fonts: theme.Fonts) -> None:
+def draw_reference(
+    screen: pygame.Surface, image: ImageTiles, fonts: theme.Fonts, title: str
+) -> None:
     x = theme.GAME_WIDTH + (theme.GAME_WIDTH - REFERENCE_SIZE) // 2
     y = (theme.BOARD_HEIGHT - REFERENCE_SIZE) // 2
     frame = pygame.Rect(x, y, REFERENCE_SIZE, REFERENCE_SIZE)
     pygame.draw.rect(screen, (255, 255, 255), frame, border_radius=15)
     pygame.draw.rect(screen, theme.ACCENT_COLOR, frame, 3, border_radius=15)
     screen.blit(image.reference, (x, y))
-    label = fonts.body.render("Hình hoàn chỉnh", True, theme.TEXT_COLOR)
+    label = fonts.body.render(title, True, theme.TEXT_COLOR)
     screen.blit(label, (x + (REFERENCE_SIZE - label.get_width()) // 2, y + REFERENCE_SIZE + 10))

@@ -4,6 +4,7 @@ import pygame
 
 from npuzzle.core.session import GameSession
 from npuzzle.core.solvers import ALGORITHMS
+from npuzzle.i18n import Translator
 from npuzzle.paths import asset_path
 from npuzzle.ui import theme
 
@@ -20,8 +21,9 @@ def _load_icon(name: str) -> pygame.Surface:
 
 
 class ControlPanel:
-    def __init__(self, fonts: theme.Fonts):
+    def __init__(self, fonts: theme.Fonts, t: Translator):
         self.fonts = fonts
+        self.t = t
         self.menu_open = False
         self.trash_icon = _load_icon("trash.png")
         self.reset_icon = _load_icon("reset.png")
@@ -83,23 +85,31 @@ class ControlPanel:
         )
         top = theme.BOARD_HEIGHT
         self._draw_centered(
-            screen, self.fonts.heading, f"Moves: {session.moves}", theme.TEXT_COLOR, top + 15
+            screen,
+            self.fonts.heading,
+            self.t("moves", count=session.moves),
+            theme.TEXT_COLOR,
+            top + 15,
         )
         if session.solving:
             if session.searching:
-                status = f"Đang tìm giải pháp bằng {session.algorithm}..."
+                status = self.t("searching", algorithm=session.algorithm)
             else:
-                status = f"Đang giải bằng {session.algorithm}: {len(session.solution)} bước còn lại"
+                status = self.t("playing", algorithm=session.algorithm, count=len(session.solution))
             self._draw_centered(screen, self.fonts.body, status, theme.ACCENT_COLOR, top + 45)
         elif session.no_solution:
-            status = f"Không tìm thấy giải pháp bằng {session.algorithm}"
+            status = self.t("no_solution", algorithm=session.algorithm)
             self._draw_centered(screen, self.fonts.body, status, theme.ACCENT_COLOR, top + 45)
 
         self._draw_button(
-            screen, self.buttons["shuffle"], "Shuffle", theme.GREEN, theme.GREEN_HOVER
+            screen, self.buttons["shuffle"], self.t("shuffle"), theme.GREEN, theme.GREEN_HOVER
         )
         self._draw_button(
-            screen, self.buttons["choose"], "Choose", theme.BUTTON_COLOR, theme.BUTTON_HOVER
+            screen,
+            self.buttons["choose"],
+            self.t("choose_image"),
+            theme.BUTTON_COLOR,
+            theme.BUTTON_HOVER,
         )
         self._draw_button(
             screen,
@@ -111,7 +121,7 @@ class ControlPanel:
         self._draw_button(
             screen,
             self.buttons["solve"],
-            "Cancel" if session.solving else "Solve",
+            self.t("cancel" if session.solving else "solve"),
             theme.BUTTON_COLOR,
             theme.BUTTON_HOVER,
             enabled=not session.won,
@@ -130,7 +140,7 @@ class ControlPanel:
             )
         if session.solving and session.solution:
             self._draw_button(
-                screen, self.skip_rect, "Skip", theme.BUTTON_COLOR, theme.BUTTON_HOVER
+                screen, self.skip_rect, self.t("skip"), theme.BUTTON_COLOR, theme.BUTTON_HOVER
             )
         if session.won:
-            self._draw_centered(screen, self.fonts.heading, "YOU WIN!", theme.GREEN, top + 120)
+            self._draw_centered(screen, self.fonts.heading, self.t("won"), theme.GREEN, top + 120)

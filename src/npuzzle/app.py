@@ -5,11 +5,12 @@ from tkinter import Tk, filedialog, messagebox
 import pygame
 
 from npuzzle.core.session import GameSession
+from npuzzle.i18n import Translator
+from npuzzle.settings import Settings
 from npuzzle.ui import board_view, theme
 from npuzzle.ui.image_tiles import ImageTiles
 from npuzzle.ui.panels import ControlPanel
 
-TITLE = "8 Puzzle Game"
 ARROW_MOVES = {
     pygame.K_UP: "up",
     pygame.K_DOWN: "down",
@@ -21,12 +22,14 @@ ARROW_MOVES = {
 class App:
     def __init__(self):
         pygame.init()
+        self.settings = Settings.load()
+        self.t = Translator(self.settings.language)
         self.screen = pygame.display.set_mode((theme.SCREEN_WIDTH, theme.SCREEN_HEIGHT))
-        pygame.display.set_caption(TITLE)
+        pygame.display.set_caption(self.t("title"))
         self.clock = pygame.time.Clock()
         self.fonts = theme.Fonts()
         self.session = GameSession()
-        self.panel = ControlPanel(self.fonts)
+        self.panel = ControlPanel(self.fonts, self.t)
         self.image: ImageTiles | None = None
         self.running = True
 
@@ -37,14 +40,14 @@ class App:
         )
         self.panel.draw(self.screen, self.session, self.image is not None)
         if self.image:
-            board_view.draw_reference(self.screen, self.image, self.fonts)
+            board_view.draw_reference(self.screen, self.image, self.fonts, self.t("reference"))
 
     def choose_image(self) -> None:
         root = Tk()
         root.withdraw()
         path = filedialog.askopenfilename(
-            title="Chọn hình ảnh",
-            filetypes=[("Image files", "*.jpg;*.jpeg;*.png;*.bmp")],
+            title=self.t("dialog_title"),
+            filetypes=[(self.t("dialog_filter"), "*.jpg;*.jpeg;*.png;*.bmp")],
         )
         root.destroy()
         if not path:
@@ -54,7 +57,7 @@ class App:
         except (pygame.error, OSError):
             root = Tk()
             root.withdraw()
-            messagebox.showerror("Lỗi", "Không thể tải hình ảnh. Vui lòng chọn file hợp lệ.")
+            messagebox.showerror(self.t("error_title"), self.t("image_error"))
             root.destroy()
             return
         self.session.shuffle()
@@ -102,8 +105,7 @@ class App:
             self.render()
             pygame.display.flip()
             self.session.update(pygame.time.get_ticks())
-            caption = f"{TITLE} - YOU WIN!" if self.session.won else TITLE
-            pygame.display.set_caption(caption)
+            pygame.display.set_caption(self.t("title_won" if self.session.won else "title"))
             for event in pygame.event.get():
                 self.handle_event(event)
         pygame.quit()
