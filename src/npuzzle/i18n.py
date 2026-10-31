@@ -71,7 +71,7 @@ STRINGS = {
         "picture_off": "Playing with numbers",
         "reference_board": "Finished board",
         "reference": "Finished picture",
-        "choose_image": "Choose",
+        "choose_image": "Choose picture",
         "change_image": "Change",
         "remove_image": "Remove",
         "language": "Language",

@@ -56,7 +56,7 @@ class SidePanel:
         self.picture_y = y + h + 40
         text_x = left + REFERENCE_SIZE + 16
         button_y = self.picture_y + REFERENCE_SIZE - h
-        self.choose = Button("choose", pygame.Rect(text_x, button_y, 96, h), style="quiet")
+        self.choose = Button("choose", pygame.Rect(text_x, button_y, 192, h), style="quiet")
         self.remove = Button("remove", pygame.Rect(text_x + 104, button_y, 88, h), style="quiet")
         self.buttons = [self.solve, self.skip, self.shuffle, self.reset, self.choose, self.remove]
         language_rect = pygame.Rect(left + self.inner_width - 192, button_y, 192, h)
@@ -78,6 +78,7 @@ class SidePanel:
         self.shuffle.style = "secondary" if player_won else "quiet"
         self.reset.label = t("reset")
         self.choose.label = t("change_image") if image else t("choose_image")
+        self.choose.rect.width = 96 if image else 192  # Shares the row with Remove.
         self.remove.label = t("remove_image")
         self.remove.visible = image is not None
 

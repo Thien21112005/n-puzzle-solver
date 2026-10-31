@@ -60,7 +60,6 @@ def test_solver_playback_finishes_on_the_goal():
     wait_for_search(session)
     assert session.records[-1].steps == 1
     session.update(1000)
-    session.update(2000)
     assert session.state == GOAL
     assert session.won
     assert session.solved_by == "BFS"

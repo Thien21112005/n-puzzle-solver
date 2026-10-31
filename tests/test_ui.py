@@ -83,12 +83,13 @@ def test_labels_fit_their_controls(app, language):
         (panel.skip, [t("skip")]),
         (panel.shuffle, [t("shuffle")]),
         (panel.reset, [t("reset")]),
-        (panel.choose, [t("choose_image"), t("change_image")]),
+        (panel.choose, [t("choose_image")]),
         (panel.remove, [t("remove_image")]),
     ]
     for button, texts in labels:
         for text in texts:
             assert fonts.strong.size(text)[0] <= button.rect.width - 16, text
+    assert fonts.strong.size(t("change_image"))[0] <= 96 - 16
     for key in ("hint", "image_error", "playing", "searching", "won", "solved", "no_solution"):
         text = STRINGS[language][key].format(algorithm=longest_algorithm, count=t.moves(55000))
         assert fonts.strong.size(text)[0] <= panel.status_rect.width, text

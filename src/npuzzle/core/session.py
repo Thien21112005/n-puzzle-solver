@@ -145,13 +145,12 @@ class GameSession:
     def update(self, now_ms: int) -> None:
         if self._job is not None and not self._job.is_alive():
             self._finish_search()
-        if self.state == self.goal:
-            self.won = True
-            self.solving = False
-        if self.searching or not self.solving:
-            return
-        if self.solution and now_ms - self._last_step_ms > PLAYBACK_DELAY_MS:
+        playing = self.solving and not self.searching
+        if playing and self.solution and now_ms - self._last_step_ms > PLAYBACK_DELAY_MS:
             self.move(self.solution.pop(0))
             self._last_step_ms = now_ms
-        if not self.solution:
+        if playing and not self.solution:
+            self.solving = False
+        if self.state == self.goal:
+            self.won = True
             self.solving = False
