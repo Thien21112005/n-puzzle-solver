@@ -56,7 +56,7 @@ class SidePanel:
         self.picture_y = y + h + 40
         text_x = left + REFERENCE_SIZE + 16
         button_y = self.picture_y + REFERENCE_SIZE - h
-        self.choose = Button("choose", pygame.Rect(text_x, button_y, 96, h))
+        self.choose = Button("choose", pygame.Rect(text_x, button_y, 96, h), style="quiet")
         self.remove = Button("remove", pygame.Rect(text_x + 104, button_y, 88, h), style="quiet")
         self.buttons = [self.solve, self.skip, self.shuffle, self.reset, self.choose, self.remove]
         language_rect = pygame.Rect(left + self.inner_width - 192, button_y, 192, h)
@@ -73,6 +73,9 @@ class SidePanel:
         self.skip.enabled = bool(session.solution)
         self.shuffle.label = t("shuffle")
         self.shuffle.enabled = not session.solving
+        # After the player wins, starting a new game is the obvious next step.
+        player_won = session.won and not session.solved_by
+        self.shuffle.style = "secondary" if player_won else "quiet"
         self.reset.label = t("reset")
         self.choose.label = t("change_image") if image else t("choose_image")
         self.remove.label = t("remove_image")
@@ -139,9 +142,13 @@ class SidePanel:
                 draw.tabular_text(screen, fonts.data, "—", theme.INK_SOFT, x, row.centery)
                 continue
             is_best = key in best and read(record) == best[key]
-            font = fonts.data_best if is_best else fonts.data
-            color = theme.SHUTTER if is_best else theme.INK
-            draw.tabular_text(screen, font, show(record, self.t.language), color, x, row.centery)
+            value = show(record, self.t.language)
+            if is_best:
+                # Bold digits look split in equal-width cells, and the weight marks them anyway.
+                midright = (x, row.centery)
+                draw.text(screen, fonts.data_best, value, theme.SHUTTER, midright=midright)
+            else:
+                draw.tabular_text(screen, fonts.data, value, theme.INK, x, row.centery)
 
     def _status(self, session: GameSession, notice: str | None) -> tuple[str, tuple]:
         t = self.t
@@ -187,7 +194,7 @@ class SidePanel:
         else:
             self._draw_number_preview(screen, frame)
         title = t("picture_on") if image else t("picture_off")
-        detail = t("reference") if image else t("picture_hint")
+        detail = t("reference") if image else t("reference_board")
         draw.text(screen, fonts.strong, title, theme.INK, topleft=(text_x, y))
         draw.text(screen, fonts.small, detail, theme.INK_SOFT, topleft=(text_x, y + 22))
         label = (self.language.rect.x, y)

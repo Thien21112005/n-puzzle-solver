@@ -42,6 +42,13 @@ def test_clicking_a_plate_next_to_the_blank_moves_it(app):
     assert app.session.moves == 1
 
 
+def test_only_plates_next_to_the_blank_count_as_movable(app):
+    place(app, ONE_MOVE_AWAY)
+    assert app._movable_cell(app.board.cell_position(8)) == 8
+    assert app._movable_cell(app.board.cell_position(0)) is None
+    assert app._movable_cell(app.board.cell_position(5)) is None
+
+
 def test_clicking_a_far_plate_does_nothing(app):
     place(app, ONE_MOVE_AWAY)
     app.handle_click(app.board.cell_position(0))
@@ -87,7 +94,9 @@ def test_labels_fit_their_controls(app, language):
         assert fonts.strong.size(text)[0] <= panel.status_rect.width, text
     assert fonts.small.size(t("table_note"))[0] <= panel.inner_width
     assert fonts.small.size(t("table_empty"))[0] <= panel.inner_width
-    assert fonts.small.size(t("picture_hint"))[0] <= panel.language.rect.x - panel.choose.rect.x - 8
+    assert (
+        fonts.small.size(t("reference_board"))[0] <= panel.language.rect.x - panel.choose.rect.x - 8
+    )
 
 
 @pytest.mark.parametrize("language", STRINGS)

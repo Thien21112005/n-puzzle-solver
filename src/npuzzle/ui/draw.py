@@ -73,21 +73,39 @@ def _brush_mark(strength: int) -> pygame.Surface:
     return mark
 
 
+def _add_grain(wall: pygame.Surface, rng: random.Random) -> None:
+    """Scatter fine pigment grain, repeating one tile to keep startup fast."""
+    side = 128
+    lighter, darker = pygame.Surface((side, side)), pygame.Surface((side, side))
+    for x in range(side):
+        for y in range(side):
+            shade = rng.randint(-3, 3)
+            target = lighter if shade > 0 else darker
+            target.set_at((x, y), (abs(shade), abs(shade), abs(shade)))
+    for x in range(0, wall.get_width(), side):
+        for y in range(0, wall.get_height(), side):
+            wall.blit(lighter, (x, y), None, pygame.BLEND_RGB_ADD)
+            wall.blit(darker, (x, y), None, pygame.BLEND_RGB_SUB)
+
+
 @lru_cache(maxsize=4)
 def limewash(size: tuple[int, int], color: tuple[int, int, int]) -> pygame.Surface:
-    """Paint a wall with the wide, uneven brush marks of limewash."""
+    """Paint a wall with the long, crossing brush strokes and grain of limewash."""
     rng = random.Random(7)
     wall = pygame.Surface(size)
     wall.fill(color)
-    marks = {strength: _brush_mark(strength) for strength in (3, 5, 7)}
-    for _ in range(160):
-        mark = marks[rng.choice((3, 5, 7))]
-        width = rng.randint(160, 520)
-        height = rng.randint(70, 240)
-        stroke = pygame.transform.smoothscale(mark, (width, height))
-        position = (rng.randint(-width // 2, size[0]), rng.randint(-height // 2, size[1]))
+    marks = {strength: _brush_mark(strength) for strength in (4, 6, 9)}
+    for _ in range(220):
+        mark = marks[rng.choice((4, 6, 9))]
+        length = rng.randint(260, 760)
+        thickness = rng.randint(14, 60)
+        stroke = pygame.transform.smoothscale(mark, (length, thickness))
+        angle = rng.choice((-1, 1)) * rng.uniform(6, 20)
+        stroke = pygame.transform.rotate(stroke, angle)
+        position = (rng.randint(-length // 2, size[0]), rng.randint(-thickness * 3, size[1]))
         flag = pygame.BLEND_RGB_ADD if rng.random() < 0.5 else pygame.BLEND_RGB_SUB
         wall.blit(stroke, position, None, flag)
+    _add_grain(wall, rng)
     return wall
 
 
